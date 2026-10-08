@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Lunar de Feiras</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        lunar: {
+                            950: '#0a0a0f',
+                            900: '#12121c',
+                            800: '#1a1a2e',
+                            700: '#252542',
+                            600: '#383860',
+                            yellow: '#facc15',
+                            gold: '#eab308',
+                            glow: '#fef08a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Moon and UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0f;
+            color: #f3f4f6;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #12121c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #383860;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #eab308;
+        }
+        .moon-glow {
+            box-shadow: 0 0 25px rgba(234, 179, 8, 0.15);
+        }
+        .moon-border {
+            border-color: rgba(234, 179, 8, 0.2);
+        }
+
+        /* Print Specific Styles */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            header, nav, footer, .no-print, button, select, input {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .max-w-7xl, main {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #painel-feira-ativo {
+                display: block !important;
+            }
+            #tab-relatorios {
+                display: block !important;
+            }
+            .bg-lunar-900, .bg-lunar-800, .bg-lunar-950 {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                border-color: #d1d5db !important;
+                box-shadow: none !important;
+            }
+            .text-white, .text-gray-100, .text-gray-300, .text-gray-400 {
+                color: #111827 !important;
+            }
+            .text-yellow-400, .text-emerald-400, .text-sky-400, .text-red-400 {
+                color: #000000 !important;
+                font-weight: bold;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #d1d5db !important;
+                padding: 8px !important;
+                color: #000000 !important;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-lunar-950 text-gray-100 flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+
+    <header class="bg-lunar-900 border-b moon-border sticky top-0 z-50 backdrop-blur-md bg-opacity-90 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-lunar-800 via-lunar-700 to-yellow-500 flex items-center justify-center moon-glow border moon-border">
+                    <i class="fa-solid fa-moon text-yellow-400 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-white flex items-center gap-2">
+                        LUNAR<span class="text-yellow-400 font-light">FAIR</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">Controle Financeiro de Feiras</p>
+                </div>
+            </div>
+            
+            <nav class="flex space-x-1 sm:space-x-3">
+                <button onclick="switchTab('feiras')" id="btn-tab-feiras" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20 flex items-center gap-2">
+                    <i class="fa-solid fa-store"></i> <span class="hidden sm:inline">Feiras</span>
+                </button>
+                <button onclick="switchTab('feirantes')" id="btn-tab-feirantes" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> <span class="hidden sm:inline">Feirantes</span>
+                </button>
+                <button onclick="switchTab('relatorios')" id="btn-tab-relatorios" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i> <span class="hidden sm:inline">Relatórios</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: FEIRAS (EVENTOS) -->
+        <div id="tab-feiras" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow no-print">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-yellow-400"></i> Gestão de Feiras e Eventos
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">Selecione uma feira existente ou crie um novo evento para controle de caixa e presenças.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <select id="select-feira-ativa" onchange="selecionarFeira(this.value)" class="bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400 w-full md:w-64">
+                        <option value="">Selecione uma Feira...</option>
+                    </select>
+                    <button onclick="abrirModalNovaFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-yellow-400/10">
+                        <i class="fa-solid fa-plus"></i> Nova Feira
+                    </button>
+                </div>
+            </div>
+
+            <!-- PAINEL DA FEIRA SELECIONADA -->
+            <div id="painel-feira-vazio" class="text-center py-20 bg-lunar-900/50 rounded-2xl border border-dashed moon-border">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-lunar-800 flex items-center justify-center text-yellow-400 text-2xl moon-glow">
+                    <i class="fa-solid fa-store-slash"></i>
+                </div>
+                <h3 class="text-lg font-medium text-white">Nenhuma Feira Selecionada</h3>
+                <p class="text-sm text-gray-400 mt-1">Crie uma nova feira ou selecione uma na lista acima para começar o controle.</p>
+            </div>
+
+            <div id="painel-feira-ativo" class="hidden space-y-6">
+                <!-- CABEÇALHO PARA IMPRESSÃO -->
+                <div class="print-only mb-6 text-center border-b pb-4">
+                    <h1 class="text-2xl font-bold">LUNAR FAIR - RELATÓRIO DA FEIRA</h1>
+                    <p id="print-feira-data-cabecalho" class="text-sm text-gray-600 mt-1">Data: -</p>
+                </div>
+
+                <!-- Info cards da Feira -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Data da Feira</p>
+                            <h4 id="info-feira-data" class="text-lg font-bold text-white mt-1">-</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-yellow-400 flex items-center justify-center no-print">
+                            <i class="fa-solid fa-calendar"></i>
+                        </div>
+                    </div>
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Taxa por Feirante</p>
+                            <h4 id="info-feira-taxa" class="text-lg font-bold text-white mt-1">R$ 0,00</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-yellow-400 flex items-center justify-center no-print">
+                            <i class="fa-solid fa-tag"></i>
+                        </div>
+                    </div>
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Despesas</p>
+                            <h4 id="info-feira-despesa" class="text-lg font-bold text-red-400 mt-1">R$ 0,00</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-red-400 flex items-center justify-center no-print">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                    </div>
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Saldo Líquido (Caixa)</p>
+                            <h4 id="info-feira-saldo" class="text-lg font-bold text-emerald-400 mt-1">R$ 0,00</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-emerald-400 flex items-center justify-center no-print">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL DE SALDOS SEPARADOS (DINHEIRO E PIX) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-money-bill-wave mr-1"></i> Saldo em Dinheiro</p>
+                            <h4 id="info-saldo-dinheiro" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</h4>
+                            <p class="text-xs text-gray-400 mt-1">Recebido Dinheiro menos Despesas em Dinheiro</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-950/40 text-emerald-400 border border-emerald-900/50 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                    </div>
+                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-sky-400 uppercase tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> Saldo em Pix</p>
+                            <h4 id="info-saldo-pix" class="text-xl font-bold text-sky-400 mt-1">R$ 0,00</h4>
+                            <p class="text-xs text-gray-400 mt-1">Recebido Pix menos Despesas via Pix</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-sky-950/40 text-sky-400 border border-sky-900/50 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GERENCIAMENTO DE DESPESAS INDIVIDUAIS DA FEIRA -->
+                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border no-print">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <div>
+                            <h3 class="font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-red-400"></i> Lançamento de Despesas Detalhadas
+                            </h3>
+                            <p class="text-xs text-gray-400">Adicione cada despesa individualmente e a forma de pagamento utilizada.</p>
+                        </div>
+                    </div>
+                    <!-- Formulário para adicionar nova despesa -->
+                    <form onsubmit="adicionarDespesa(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
+                        <div class="md:col-span-5">
+                            <input type="text" id="nova-despesa-desc" required placeholder="Descrição da despesa (ex: Aluguel de Tenda, Som...)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div class="md:col-span-3">
+                            <input type="number" step="0.01" min="0" id="nova-despesa-valor" required placeholder="Valor (R$)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div class="md:col-span-2">
+                            <select id="nova-despesa-pagamento" required class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="pix">Pix</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="w-full bg-red-950/60 hover:bg-red-900/80 text-red-400 border border-red-900/50 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Tabela de Despesas Lançadas -->
+                    <div class="overflow-x-auto rounded-xl border moon-border">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-lunar-800/80 text-gray-400 text-xs uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-4">Descrição da Despesa</th>
+                                    <th class="py-2.5 px-4 text-center">Forma Pagto</th>
+                                    <th class="py-2.5 px-4 text-right">Valor</th>
+                                    <th class="py-2.5 px-4 text-center w-24">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-despesas-body" class="divide-y divide-lunar-800">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabela de Despesas para Impressão -->
+                <div id="print-secao-despesas" class="print-only mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-bold text-base mb-2">Despesas Detalhadas da Feira</h3>
+                    <div id="print-lista-despesas" class="text-sm text-gray-700">
+                        Nenhuma despesa lançada.
+                    </div>
+                </div>
+
+                <!-- Ações e Resumo rápido -->
+                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-4 text-sm">
+                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                            Total Cadastrados: <strong id="stat-total" class="text-white">0</strong>
+                        </span>
+                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                            Presentes: <strong id="stat-presentes" class="text-yellow-400">0</strong>
+                        </span>
+                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                            Faltas: <strong id="stat-faltas" class="text-red-400">0</strong>
+                        </span>
+                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                            Arrecadado Dinheiro: <strong id="stat-dinheiro" class="text-emerald-400">R$ 0,00</strong>
+                        </span>
+                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                            Arrecadado Pix: <strong id="stat-pix" class="text-sky-400">R$ 0,00</strong>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 no-print">
+                        <button onclick="imprimirRelatorioFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/10">
+                            <i class="fa-solid fa-print"></i> Imprimir Relatório
+                        </button>
+                        <button onclick="abrirModalEditarFeira()" class="bg-lunar-800 hover:bg-lunar-700 text-yellow-400 border moon-border px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square"></i> Editar Feira
+                        </button>
+                        <button onclick="excluirFeiraAtual()" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/50 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Excluir Feira
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabela de Feirantes na Feira -->
+                <div class="bg-lunar-900 rounded-2xl border moon-border overflow-hidden">
+                    <div class="p-5 border-b moon-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print">
+                        <h3 class="font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-yellow-400"></i> Lista de Feirantes & Pagamentos
+                        </h3>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <i class="fa-solid fa-search text-xs"></i>
+                                </span>
+                                <input type="text" id="filtro-busca-feira" oninput="renderizarFeirantesFeira()" placeholder="Filtrar feirante..." class="w-full bg-lunar-800 border moon-border rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-lunar-800/80 text-gray-400 text-xs uppercase tracking-wider border-b moon-border">
+                                    <th class="py-3 px-4">Feirante</th>
+                                    <th class="py-3 px-4 text-center">Participação</th>
+                                    <th class="py-3 px-4 text-center">Forma de Pagamento</th>
+                                    <th class="py-3 px-4 text-right">Valor Taxa</th>
+                                    <th class="py-3 px-4 text-center no-print">Ações / Desfazer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-feirantes-feira-body" class="divide-y divide-lunar-800 text-sm">
+                                <!-- Preenchido dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO ADICIONAL PARA IMPRESSÃO DE INADIMPLENTES -->
+                <div id="print-secao-inadimplentes" class="print-only mt-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-bold text-base mb-2">Resumo de Inadimplentes</h3>
+                    <div id="print-lista-inadimplentes" class="text-sm text-gray-700">
+                        Nenhum inadimplente.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: FEIRANTES (CADASTRO GERAL) -->
+        <div id="tab-feirantes" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-users text-yellow-400"></i> Cadastro Geral de Feirantes
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">Cadastre, edite ou remova os feirantes disponíveis para participar das feiras.</p>
+                </div>
+                <button onclick="abrirModalNovoFeirante()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/10">
+                    <i class="fa-solid fa-user-plus"></i> Novo Feirante
+                </button>
+            </div>
+
+            <div class="bg-lunar-900 rounded-2xl border moon-border overflow-hidden">
+                <div class="p-5 border-b moon-border flex justify-between items-center">
+                    <h3 class="font-bold text-white">Feirantes Cadastrados (<span id="total-cadastrados-count">0</span>)</h3>
+                    <input type="text" id="filtro-busca-cadastro" oninput="renderizarCadastroFeirantes()" placeholder="Buscar por nome..." class="bg-lunar-800 border moon-border rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 w-64">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-lunar-800/80 text-gray-400 text-xs uppercase tracking-wider border-b moon-border">
+                                <th class="py-3 px-4">Nome</th>
+                                <th class="py-3 px-4">Telefone / Contato</th>
+                                <th class="py-3 px-4">Segmento / Produto</th>
+                                <th class="py-3 px-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-cadastro-body" class="divide-y divide-lunar-800 text-sm">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: RELATÓRIOS -->
+        <div id="tab-relatorios" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow no-print">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-yellow-400"></i> Relatório Geral de Feiras
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">Histórico consolidado de todas as feiras realizadas e inadimplências.</p>
+                </div>
+                <button onclick="imprimirRelatorioGeral()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/15">
+                    <i class="fa-solid fa-print"></i> Imprimir Relatório Geral
+                </button>
+            </div>
+
+            <!-- CABEÇALHO PARA IMPRESSÃO DO RELATÓRIO GERAL -->
+            <div class="print-only mb-6 text-center border-b pb-4">
+                <h1 class="text-2xl font-bold">LUNAR FAIR - RELATÓRIO GERAL CONSOLIDADO</h1>
+                <p class="text-sm text-gray-600 mt-1">Histórico financeiro e saldos de todas as feiras</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border">
+                    <p class="text-xs font-medium text-gray-400 uppercase">Total de Feiras Realizadas</p>
+                    <h3 id="rel-total-feiras" class="text-3xl font-bold text-white mt-2">0</h3>
+                </div>
+                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border">
+                    <p class="text-xs font-medium text-gray-400 uppercase">Arrecadação Bruta Geral</p>
+                    <h3 id="rel-total-arrecadado" class="text-3xl font-bold text-emerald-400 mt-2">R$ 0,00</h3>
+                </div>
+                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border">
+                    <p class="text-xs font-medium text-gray-400 uppercase">Saldo Líquido Acumulado</p>
+                    <h3 id="rel-total-liquido" class="text-3xl font-bold text-yellow-400 mt-2">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <div class="bg-lunar-900 rounded-2xl border moon-border p-6">
+                <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-file-lines text-yellow-400"></i> Extrato Detalhado de Feiras
+                </h3>
+                <div id="lista-extrato-feiras" class="space-y-4">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: NOVA / EDITAR FEIRA -->
+    <div id="modal-feira" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 id="modal-feira-titulo" class="text-xl font-bold text-white mb-4">Nova Feira</h3>
+            <form id="form-feira" onsubmit="salvarFeira(event)" class="space-y-4">
+                <input type="hidden" id="feira-id-edit">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Data da Feira</label>
+                    <input type="date" id="feira-data" required class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Valor da Taxa por Feirante (R$)</label>
+                    <input type="number" step="0.01" min="0" id="feira-taxa" required placeholder="Ex: 50.00" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="fecharModalFeira()" class="bg-lunar-800 hover:bg-lunar-700 text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">Cancelar</button>
+                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/10">Salvar Feira</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NOVO / EDITAR FEIRANTE -->
+    <div id="modal-feirante" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 id="modal-feirante-titulo" class="text-xl font-bold text-white mb-4">Novo Feirante</h3>
+            <form id="form-feirante" onsubmit="salvarFeirante(event)" class="space-y-4">
+                <input type="hidden" id="feirante-id-edit">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Nome Completo</label>
+                    <input type="text" id="feirante-nome" required placeholder="Ex: João da Silva" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Telefone / Contato</label>
+                    <input type="text" id="feirante-telefone" placeholder="Ex: (11) 99999-9999" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Segmento / Produto</label>
+                    <input type="text" id="feirante-segmento" placeholder="Ex: Artesanato, Comida, Roupas..." class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="fecharModalFeirante()" class="bg-lunar-800 hover:bg-lunar-700 text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">Cancelar</button>
+                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/10">Salvar Feirante</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE MENSAGENS / AVISOS -->
+    <div id="modal-aviso" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div id="modal-aviso-icon" class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h4 id="modal-aviso-titulo" class="text-lg font-bold text-white mb-2">Aviso</h4>
+            <p id="modal-aviso-texto" class="text-sm text-gray-300 mb-6">Mensagem aqui...</p>
+            <button onclick="fecharAviso()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2.5 rounded-xl transition-all">Entendido</button>
+        </div>
+    </div>
+
+    <footer class="bg-lunar-900 border-t moon-border py-6 text-center text-xs text-gray-400 mt-12 no-print">
+        <p>LunarFair &bull; Controle Financeiro de Feiras com Temática Lunar &copy; 2026</p>
+    </footer>
+
+    <script>
+        // --- ESTADO DA APLICAÇÃO & LOCALSTORAGE ---
+        let db = {
+            feirantes: [],
+            feiras: []
+        };
+
+        let feiraAtivaId = null;
+
+        // Inicialização dos dados padrão se vazio
+        function carregarDados() {
+            const salvo = localStorage.getItem('lunar_fair_db');
+            if (salvo) {
+                try {
+                    db = JSON.parse(salvo);
+                    // Garantir compatibilidade de estrutura com despesas como array e pagamento da despesa
+                    db.feiras.forEach(f => {
+                        if (!f.despesas || !Array.isArray(f.despesas)) {
+                            f.despesas = f.despesa ? [{ id: 'd_legacy', descricao: 'Despesa Geral', valor: f.despesa, pagamento: 'dinheiro' }] : [];
+                        } else {
+                            f.despesas.forEach(d => {
+                                if (!d.pagamento) d.pagamento = 'dinheiro';
+                            });
+                        }
+                    });
+                } catch (e) {
+                    console.error("Erro ao carregar localStorage", e);
+                }
+            } else {
+                // Dados de Exemplo iniciais
+                db.feirantes = [
+                    { id: 'f1', nome: 'Ana Souza', telefone: '(11) 98888-1111', segmento: 'Artesanato' },
+                    { id: 'f2', nome: 'Bruno Lima', telefone: '(11) 98888-2222', segmento: 'Pastelaria' },
+                    { id: 'f3', nome: 'Carla Dias', telefone: '(11) 98888-3333', segmento: 'Roupas' },
+                    { id: 'f4', nome: 'Daniel Rocha', telefone: '(11) 98888-4444', segmento: 'Doces' },
+                    { id: 'f5', nome: 'Elena Martins', telefone: '(11) 98888-5555', segmento: 'Plantas' }
+                ];
+                
+                // Exemplo de Feira com Despesas Individuais e Forma de Pagamento
+                const hojeStr = new Date().toISOString().split('T')[0];
+                const novaFeira = {
+                    id: 'feira_exemplo_' + Date.now(),
+                    data: hojeStr,
+                    taxa: 50,
+                    despesas: [
+                        { id: 'd1', descricao: 'Aluguel de Tenda', valor: 60, pagamento: 'dinheiro' },
+                        { id: 'd2', descricao: 'Energia / Ponto', valor: 40, pagamento: 'pix' }
+                    ],
+                    registros: {}
+                };
+                
+                db.feirantes.forEach((f, idx) => {
+                    if (idx < 4) {
+                        novaFeira.registros[f.id] = {
+                            presente: true,
+                            pagamento: idx === 0 ? 'dinheiro' : (idx === 1 ? 'pix' : 'pendente')
+                        };
+                    } else {
+                        novaFeira.registros[f.id] = { presente: false, pagamento: 'pendente' };
+                    }
+                });
+
+                db.feiras.push(novaFeira);
+                salvarDados();
+            }
+
+            if (db.feiras.length > 0 && !feiraAtivaId) {
+                feiraAtivaId = db.feiras[0].id;
+            }
+        }
+
+        function salvarDados() {
+            localStorage.setItem('lunar_fair_db', JSON.stringify(db));
+        }
+
+        // --- NAVEGAÇÃO DE ABAS ---
+        function switchTab(tabName) {
+            ['feiras', 'feirantes', 'relatorios'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2";
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-tab-${tabName}`);
+            activeBtn.className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20 flex items-center gap-2";
+
+            if (tabName === 'feiras') {
+                atualizarSelectFeiras();
+            } else if (tabName === 'feirantes') {
+                renderizarCadastroFeirantes();
+            } else if (tabName === 'relatorios') {
+                renderizarRelatorios();
+            }
+        }
+
+        // --- MODAL AVISO CUSTOMIZADO ---
+        function mostrarAviso(titulo, texto, tipo = 'info') {
+            document.getElementById('modal-aviso-titulo').innerText = titulo;
+            document.getElementById('modal-aviso-texto').innerText = texto;
+            const iconContainer = document.getElementById('modal-aviso-icon');
+            if (tipo === 'erro') {
+                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center text-red-400 text-2xl";
+                iconContainer.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            } else {
+                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 text-2xl";
+                iconContainer.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+            }
+            document.getElementById('modal-aviso').classList.remove('hidden');
+        }
+
+        function fecharAviso() {
+            document.getElementById('modal-aviso').classList.add('hidden');
+        }
+
+        // --- GERENCIAMENTO DE FEIRANTES (CADASTRO) ---
+        function renderizarCadastroFeirantes() {
+            const busca = document.getElementById('filtro-busca-cadastro').value.toLowerCase();
+            const tbody = document.getElementById('tabela-cadastro-body');
+            tbody.innerHTML = '';
+
+            const filtrados = db.feirantes.filter(f => f.nome.toLowerCase().includes(busca) || (f.segmento && f.segmento.toLowerCase().includes(busca)));
+            filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            document.getElementById('total-cadastrados-count').innerText = db.feirantes.length;
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">Nenhum feirante encontrado.</td></tr>`;
+                return;
+            }
+
+            filtrados.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-lunar-800/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-white flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-lunar-800 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs">
+                            ${f.nome.charAt(0).toUpperCase()}
+                        </div>
+                        ${f.nome}
+                    </td>
+                    <td class="py-3 px-4 text-gray-300">${f.telefone || '-'}</td>
+                    <td class="py-3 px-4 text-gray-300"><span class="bg-lunar-800 px-2.5 py-1 rounded-lg text-xs border moon-border">${f.segmento || 'Geral'}</span></td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                        <button onclick="abrirModalEditarFeirante('${f.id}')" class="text-yellow-400 hover:text-yellow-300 p-1.5 rounded-lg hover:bg-lunar-800 transition-colors" title="Editar">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="excluirFeirante('${f.id}')" class="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-lunar-800 transition-colors" title="Excluir">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function abrirModalNovoFeirante() {
+            document.getElementById('modal-feirante-titulo').innerText = "Novo Feirante";
+            document.getElementById('feirante-id-edit').value = "";
+            document.getElementById('feirante-nome').value = "";
+            document.getElementById('feirante-telefone').value = "";
+            document.getElementById('feirante-segmento').value = "";
+            document.getElementById('modal-feirante').classList.remove('hidden');
+        }
+
+        function abrirModalEditarFeirante(id) {
+            const f = db.feirantes.find(item => item.id === id);
+            if (!f) return;
+            document.getElementById('modal-feirante-titulo').innerText = "Editar Feirante";
+            document.getElementById('feirante-id-edit').value = f.id;
+            document.getElementById('feirante-nome').value = f.nome;
+            document.getElementById('feirante-telefone').value = f.telefone || "";
+            document.getElementById('feirante-segmento').value = f.segmento || "";
+            document.getElementById('modal-feirante').classList.remove('hidden');
+        }
+
+        function fecharModalFeirante() {
+            document.getElementById('modal-feirante').classList.add('hidden');
+        }
+
+        function salvarFeirante(e) {
+            e.preventDefault();
+            const idEdit = document.getElementById('feirante-id-edit').value;
+            const nome = document.getElementById('feirante-nome').value.trim();
+            const telefone = document.getElementById('feirante-telefone').value.trim();
+            const segmento = document.getElementById('feirante-segmento').value.trim();
+
+            if (!nome) return;
+
+            if (idEdit) {
+                const f = db.feirantes.find(item => item.id === idEdit);
+                if (f) {
+                    f.nome = nome;
+                    f.telefone = telefone;
+                    f.segmento = segmento;
+                }
+            } else {
+                const novo = {
+                    id: 'f_' + Date.now(),
+                    nome,
+                    telefone,
+                    segmento
+                };
+                db.feirantes.push(novo);
+
+                db.feiras.forEach(feira => {
+                    feira.registros[novo.id] = { presente: false, pagamento: 'pendente' };
+                });
+            }
+
+            salvarDados();
+            fecharModalFeirante();
+            renderizarCadastroFeirantes();
+            if (feiraAtivaId) renderizarFeirantesFeira();
+        }
+
+        function excluirFeirante(id) {
+            const f = db.feirantes.find(item => item.id === id);
+            if (!f) return;
+            
+            db.feirantes = db.feirantes.filter(item => item.id !== id);
+            db.feiras.forEach(feira => {
+                if (feira.registros[id]) {
+                    delete feira.registros[id];
+                }
+            });
+
+            salvarDados();
+            renderizarCadastroFeirantes();
+            if (feiraAtivaId) renderizarFeirantesFeira();
+        }
+
+        // --- GERENCIAMENTO DE DESPESAS INDIVIDUAIS ---
+        function adicionarDespesa(e) {
+            e.preventDefault();
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            const desc = document.getElementById('nova-despesa-desc').value.trim();
+            const valor = parseFloat(document.getElementById('nova-despesa-valor').value) || 0;
+            const pagamento = document.getElementById('nova-despesa-pagamento').value;
+
+            if (!desc || valor <= 0) return;
+
+            if (!feira.despesas) feira.despesas = [];
+
+            feira.despesas.push({
+                id: 'desp_' + Date.now(),
+                descricao: desc,
+                valor: valor,
+                pagamento: pagamento
+            });
+
+            document.getElementById('nova-despesa-desc').value = '';
+            document.getElementById('nova-despesa-valor').value = '';
+            document.getElementById('nova-despesa-pagamento').value = 'dinheiro';
+
+            salvarDados();
+            carregarDetalhesFeiraAtiva();
+        }
+
+        function excluirDespesa(despId) {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira || !feira.despesas) return;
+
+            feira.despesas = feira.despesas.filter(d => d.id !== despId);
+            salvarDados();
+            carregarDetalhesFeiraAtiva();
+        }
+
+        // --- GERENCIAMENTO DE FEIRAS E EVENTOS ---
+        function atualizarSelectFeiras() {
+            const select = document.getElementById('select-feira-ativa');
+            select.innerHTML = '<option value="">Selecione uma Feira...</option>';
+
+            db.feiras.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            db.feiras.forEach(feira => {
+                const opt = document.createElement('option');
+                opt.value = feira.id;
+                const [ano, mes, dia] = feira.data.split('-');
+                opt.innerText = `Feira do dia ${dia}/${mes}/${ano} (Taxa: R$ ${feira.taxa})`;
+                if (feira.id === feiraAtivaId) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+
+            if (feiraAtivaId) {
+                document.getElementById('painel-feira-vazio').classList.add('hidden');
+                document.getElementById('painel-feira-ativo').classList.remove('hidden');
+                carregarDetalhesFeiraAtiva();
+            } else {
+                document.getElementById('painel-feira-vazio').classList.remove('hidden');
+                document.getElementById('painel-feira-ativo').classList.add('hidden');
+            }
+        }
+
+        function selecionarFeira(id) {
+            feiraAtivaId = id;
+            if (id) {
+                document.getElementById('painel-feira-vazio').classList.add('hidden');
+                document.getElementById('painel-feira-ativo').classList.remove('hidden');
+                carregarDetalhesFeiraAtiva();
+            } else {
+                document.getElementById('painel-feira-vazio').classList.remove('hidden');
+                document.getElementById('painel-feira-ativo').classList.add('hidden');
+            }
+        }
+
+        function abrirModalNovaFeira() {
+            document.getElementById('modal-feira-titulo').innerText = "Nova Feira";
+            document.getElementById('feira-id-edit').value = "";
+            document.getElementById('feira-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('feira-taxa').value = "50";
+            document.getElementById('modal-feira').classList.remove('hidden');
+        }
+
+        function abrirModalEditarFeira() {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+            document.getElementById('modal-feira-titulo').innerText = "Editar Feira";
+            document.getElementById('feira-id-edit').value = feira.id;
+            document.getElementById('feira-data').value = feira.data;
+            document.getElementById('feira-taxa').value = feira.taxa;
+            document.getElementById('modal-feira').classList.remove('hidden');
+        }
+
+        function fecharModalFeira() {
+            document.getElementById('modal-feira').classList.add('hidden');
+        }
+
+        function salvarFeira(e) {
+            e.preventDefault();
+            const idEdit = document.getElementById('feira-id-edit').value;
+            const data = document.getElementById('feira-data').value;
+            const taxa = parseFloat(document.getElementById('feira-taxa').value) || 0;
+
+            if (!data) return;
+
+            if (idEdit) {
+                const feira = db.feiras.find(f => f.id === idEdit);
+                if (feira) {
+                    feira.data = data;
+                    feira.taxa = taxa;
+                }
+            } else {
+                const novaFeira = {
+                    id: 'feira_' + Date.now(),
+                    data,
+                    taxa,
+                    despesas: [],
+                    registros: {}
+                };
+                db.feirantes.forEach(f => {
+                    novaFeira.registros[f.id] = { presente: true, pagamento: 'pendente' };
+                });
+                db.feiras.push(novaFeira);
+                feiraAtivaId = novaFeira.id;
+            }
+
+            salvarDados();
+            fecharModalFeira();
+            atualizarSelectFeiras();
+        }
+
+        function excluirFeiraAtual() {
+            if (!feiraAtivaId) return;
+            db.feiras = db.feiras.filter(f => f.id !== feiraAtivaId);
+            feiraAtivaId = db.feiras.length > 0 ? db.feiras[0].id : null;
+            salvarDados();
+            atualizarSelectFeiras();
+        }
+
+        // --- CONTROLE DE PAGAMENTOS E PRESENÇAS NA FEIRA ATIVA ---
+        function carregarDetalhesFeiraAtiva() {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            const [ano, mes, dia] = feira.data.split('-');
+            document.getElementById('info-feira-data').innerText = `${dia}/${mes}/${ano}`;
+            document.getElementById('print-feira-data-cabecalho').innerText = `Data do Evento: ${dia}/${mes}/${ano} | Taxa Base: R$ ${feira.taxa.toFixed(2)}`;
+            document.getElementById('info-feira-taxa').innerText = `R$ ${feira.taxa.toFixed(2)}`;
+
+            // Calcular total de despesas
+            let totalDespesas = 0;
+            if (feira.despesas && feira.despesas.length > 0) {
+                totalDespesas = feira.despesas.reduce((acc, d) => acc + d.valor, 0);
+            }
+            document.getElementById('info-feira-despesa').innerText = `R$ ${totalDespesas.toFixed(2)}`;
+
+            // Renderizar tabela de despesas individuais
+            const tbodyDespesas = document.getElementById('tabela-despesas-body');
+            tbodyDespesas.innerHTML = '';
+            const divPrintDespesas = document.getElementById('print-lista-despesas');
+
+            if (!feira.despesas || feira.despesas.length === 0) {
+                tbodyDespesas.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">Nenhuma despesa lançada nesta feira.</td></tr>`;
+                divPrintDespesas.innerHTML = `<p>Nenhuma despesa lançada.</p>`;
+            } else {
+                let htmlPrint = '<ul class="list-disc pl-5 space-y-1">';
+                feira.despesas.forEach(d => {
+                    const pagtoLabel = d.pagamento === 'pix' ? 'Pix' : 'Dinheiro';
+                    htmlPrint += `<li><strong>${d.descricao}</strong> (${pagtoLabel}): R$ ${d.valor.toFixed(2)}</li>`;
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-lunar-800/40 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-4 text-white">${d.descricao}</td>
+                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${d.pagamento === 'pix' ? 'bg-sky-950/60 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
+                        <td class="py-2.5 px-4 text-right text-red-400 font-medium">R$ ${d.valor.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-center">
+                            <button onclick="excluirDespesa('${d.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800" title="Remover Despesa">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyDespesas.appendChild(tr);
+                });
+                htmlPrint += `</ul><p class="mt-2 font-bold">Total de Despesas: R$ ${totalDespesas.toFixed(2)}</p>`;
+                divPrintDespesas.innerHTML = htmlPrint;
+            }
+
+            renderizarFeirantesFeira();
+        }
+
+        function alterarPresenca(feiranteId) {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            if (!feira.registros[feiranteId]) {
+                feira.registros[feiranteId] = { presente: false, pagamento: 'pendente' };
+            }
+
+            feira.registros[feiranteId].presente = !feira.registros[feiranteId].presente;
+            if (!feira.registros[feiranteId].presente) {
+                feira.registros[feiranteId].pagamento = 'pendente';
+            }
+
+            salvarDados();
+            renderizarFeirantesFeira();
+        }
+
+        function definirPagamento(feiranteId, tipoPagamento) {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            if (!feira.registros[feiranteId]) {
+                feira.registros[feiranteId] = { presente: true, pagamento: tipoPagamento };
+            } else {
+                feira.registros[feiranteId].presente = true;
+                feira.registros[feiranteId].pagamento = tipoPagamento;
+            }
+
+            salvarDados();
+            renderizarFeirantesFeira();
+        }
+
+        function renderizarFeirantesFeira() {
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            const busca = document.getElementById('filtro-busca-feira').value.toLowerCase();
+            const tbody = document.getElementById('tabela-feirantes-feira-body');
+            tbody.innerHTML = '';
+
+            db.feirantes.forEach(f => {
+                if (!feira.registros[f.id]) {
+                    feira.registros[f.id] = { presente: true, pagamento: 'pendente' };
+                }
+            });
+
+            let lista = db.feirantes.map(f => {
+                const reg = feira.registros[f.id] || { presente: false, pagamento: 'pendente' };
+                return { ...f, ...reg };
+            });
+
+            lista = lista.filter(item => item.nome.toLowerCase().includes(busca));
+
+            lista.sort((a, b) => {
+                if (a.presente !== b.presente) {
+                    return b.presente - a.presente;
+                }
+                if (a.presente && b.presente) {
+                    const ordemPagamento = { 'dinheiro': 1, 'pix': 2, 'pendente': 3 };
+                    const pA = ordemPagamento[a.pagamento] || 3;
+                    const pB = ordemPagamento[b.pagamento] || 3;
+                    if (pA !== pB) return pA - pB;
+                }
+                return a.nome.localeCompare(b.nome);
+            });
+
+            let totalCadastrados = db.feirantes.length;
+            let presentesCount = 0;
+            let faltasCount = 0;
+            let totalDinheiro = 0;
+            let totalPix = 0;
+            let inadimplentesNomes = [];
+
+            db.feirantes.forEach(f => {
+                const reg = feira.registros[f.id];
+                if (reg && reg.presente) {
+                    presentesCount++;
+                    if (reg.pagamento === 'dinheiro') totalDinheiro += feira.taxa;
+                    if (reg.pagamento === 'pix') totalPix += feira.taxa;
+                    if (reg.pagamento === 'pendente') {
+                        inadimplentesNomes.push(f.nome);
+                    }
+                } else {
+                    faltasCount++;
+                }
+            });
+
+            // Cálculo das despesas por tipo
+            let despesasDinheiro = 0;
+            let despesasPix = 0;
+            if (feira.despesas && feira.despesas.length > 0) {
+                feira.despesas.forEach(d => {
+                    if (d.pagamento === 'pix') {
+                        despesasPix += d.valor;
+                    } else {
+                        despesasDinheiro += d.valor;
+                    }
+                });
+            }
+            let totalDespesas = despesasDinheiro + despesasPix;
+
+            // Saldos separados
+            let saldoDinheiro = totalDinheiro - despesasDinheiro;
+            let saldoPix = totalPix - despesasPix;
+            const saldoLiquido = (totalDinheiro + totalPix) - totalDespesas;
+
+            document.getElementById('stat-total').innerText = totalCadastrados;
+            document.getElementById('stat-presentes').innerText = presentesCount;
+            document.getElementById('stat-faltas').innerText = faltasCount;
+            document.getElementById('stat-dinheiro').innerText = `R$ ${totalDinheiro.toFixed(2)}`;
+            document.getElementById('stat-pix').innerText = `R$ ${totalPix.toFixed(2)}`;
+            
+            // Atualizar cards de saldo Dinheiro e Pix
+            document.getElementById('info-saldo-dinheiro').innerText = `R$ ${saldoDinheiro.toFixed(2)}`;
+            document.getElementById('info-saldo-dinheiro').className = saldoDinheiro >= 0 ? "text-xl font-bold text-emerald-400 mt-1" : "text-xl font-bold text-red-400 mt-1";
+            
+            document.getElementById('info-saldo-pix').innerText = `R$ ${saldoPix.toFixed(2)}`;
+            document.getElementById('info-saldo-pix').className = saldoPix >= 0 ? "text-xl font-bold text-sky-400 mt-1" : "text-xl font-bold text-red-400 mt-1";
+
+            document.getElementById('info-feira-saldo').innerText = `R$ ${saldoLiquido.toFixed(2)}`;
+            document.getElementById('info-feira-saldo').className = saldoLiquido >= 0 ? "text-lg font-bold text-emerald-400 mt-1" : "text-lg font-bold text-red-400 mt-1";
+
+            const divInadimplentesPrint = document.getElementById('print-lista-inadimplentes');
+            if (inadimplentesNomes.length > 0) {
+                divInadimplentesPrint.innerHTML = `<ul class="list-disc pl-5">${inadimplentesNomes.map(nome => `<li>${nome}</li>`).join('')}</ul>`;
+            } else {
+                divInadimplentesPrint.innerHTML = `<p>Nenhum inadimplente nesta feira.</p>`;
+            }
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenhum feirante encontrado.</td></tr>`;
+                return;
+            }
+
+            lista.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = item.presente ? "hover:bg-lunar-800/50 transition-colors" : "opacity-50 bg-lunar-950/40 hover:bg-lunar-800/30 transition-colors";
+
+                let badgePagamento = '';
+                if (!item.presente) {
+                    badgePagamento = `<span class="text-xs text-gray-500 italic">Ausente na feira</span>`;
+                } else {
+                    const btnDinheiroClass = item.pagamento === 'dinheiro' 
+                        ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20 ring-2 ring-white/50' 
+                        : 'bg-lunar-800 text-gray-300 hover:bg-emerald-950 hover:text-emerald-400';
+                    
+                    const btnPixClass = item.pagamento === 'pix' 
+                        ? 'bg-sky-400 text-black font-bold shadow-md shadow-sky-400/20 ring-2 ring-white/50' 
+                        : 'bg-lunar-800 text-gray-300 hover:bg-sky-950 hover:text-sky-400';
+
+                    const btnPendenteClass = item.pagamento === 'pendente' 
+                        ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20 ring-2 ring-white/50' 
+                        : 'bg-lunar-800 text-gray-300 hover:bg-amber-950 hover:text-amber-400';
+
+                    badgePagamento = `
+                        <div class="flex items-center justify-center gap-1.5 no-print">
+                            <button onclick="definirPagamento('${item.id}', 'dinheiro')" class="px-2.5 py-1 rounded-lg text-xs transition-all ${btnDinheiroClass}" title="Marcar Dinheiro">Dinheiro</button>
+                            <button onclick="definirPagamento('${item.id}', 'pix')" class="px-2.5 py-1 rounded-lg text-xs transition-all ${btnPixClass}" title="Marcar Pix">Pix</button>
+                            <button onclick="definirPagamento('${item.id}', 'pendente')" class="px-2.5 py-1 rounded-lg text-xs transition-all ${btnPendenteClass}" title="Desfazer / Marcar Pendente">Pendente</button>
+                        </div>
+                        <span class="print-only uppercase font-semibold text-xs">${item.pagamento}</span>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="font-medium text-white flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-lunar-800 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs no-print">
+                                ${item.nome.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                ${item.nome}
+                                <div class="text-xs text-gray-400 font-normal">${item.segmento || 'Geral'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="alterarPresenca('${item.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border moon-border no-print ${item.presente ? 'bg-yellow-400 text-black shadow-md shadow-yellow-400/10' : 'bg-lunar-800 text-gray-400 hover:text-white'}">
+                            ${item.presente ? '<i class="fa-solid fa-check mr-1"></i> Presente' : '<i class="fa-solid fa-xmark mr-1"></i> Falta'}
+                        </button>
+                        <span class="print-only">${item.presente ? 'Presente' : 'Ausente'}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        ${badgePagamento}
+                    </td>
+                    <td class="py-3 px-4 text-right font-medium ${item.presente && item.pagamento !== 'pendente' ? 'text-emerald-400' : 'text-gray-500'}">
+                        R$ ${item.presente ? feira.taxa.toFixed(2) : '0,00'}
+                    </td>
+                    <td class="py-3 px-4 text-center no-print">
+                        ${item.presente && item.pagamento === 'pendente' ? '<span class="px-2 py-0.5 bg-red-950/60 text-red-400 border border-red-900/50 rounded text-xs font-medium animate-pulse">Inadimplente</span>' : '<span class="text-xs text-gray-500">-</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function imprimirRelatorioFeira() {
+            window.print();
+        }
+
+        // --- RELATÓRIOS GERAIS ---
+        function renderizarRelatorios() {
+            document.getElementById('rel-total-feiras').innerText = db.feiras.length;
+
+            let brutoGeral = 0;
+            let liquidoGeral = 0;
+
+            const listaExtrato = document.getElementById('lista-extrato-feiras');
+            listaExtrato.innerHTML = '';
+
+            if (db.feiras.length === 0) {
+                listaExtrato.innerHTML = `<p class="text-gray-400 text-sm py-4">Nenhuma feira registrada para exibir no extrato.</p>`;
+                document.getElementById('rel-total-arrecadado').innerText = "R$ 0,00";
+                document.getElementById('rel-total-liquido').innerText = "R$ 0,00";
+                return;
+            }
+
+            const feirasOrdenadas = [...db.feiras].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            feirasOrdenadas.forEach(feira => {
+                let arrecadadoDinheiro = 0;
+                let arrecadadoPix = 0;
+                let inadimplentesNomes = [];
+
+                db.feirantes.forEach(f => {
+                    const reg = feira.registros[f.id];
+                    if (reg && reg.presente) {
+                        if (reg.pagamento === 'dinheiro') {
+                            arrecadadoDinheiro += feira.taxa;
+                        } else if (reg.pagamento === 'pix') {
+                            arrecadadoPix += feira.taxa;
+                        } else if (reg.pagamento === 'pendente') {
+                            inadimplentesNomes.push(f.nome);
+                        }
+                    }
+                });
+
+                let despDinheiro = 0;
+                let despPix = 0;
+                if (feira.despesas && feira.despesas.length > 0) {
+                    feira.despesas.forEach(d => {
+                        if (d.pagamento === 'pix') despPix += d.valor;
+                        else despDinheiro += d.valor;
+                    });
+                }
+
+                let totalDespesas = despDinheiro + despPix;
+                let arrecadadoFeira = arrecadadoDinheiro + arrecadadoPix;
+                const liquidoFeira = arrecadadoFeira - totalDespesas;
+                
+                let saldoDinheiroFeira = arrecadadoDinheiro - despDinheiro;
+                let saldoPixFeira = arrecadadoPix - despPix;
+
+                brutoGeral += arrecadadoFeira;
+                liquidoGeral += liquidoFeira;
+
+                const [ano, mes, dia] = feira.data.split('-');
+
+                const card = document.createElement('div');
+                card.className = "bg-lunar-800/60 border moon-border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
+                
+                let despesasHtml = feira.despesas && feira.despesas.length > 0 
+                    ? feira.despesas.map(d => `${d.descricao} (${d.pagamento === 'pix' ? 'Pix' : 'Dinheiro'}): R$ ${d.valor.toFixed(2)}`).join(' | ') 
+                    : 'Nenhuma despesa';
+
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-day text-yellow-400"></i> Feira de ${dia}/${mes}/${ano}
+                        </h4>
+                        <div class="flex flex-wrap gap-3 text-xs text-gray-300 mt-2">
+                            <span>Taxa Base: <strong>R$ ${feira.taxa.toFixed(2)}</strong></span>
+                            <span>Dinheiro (Liq): <strong class="text-emerald-400">R$ ${saldoDinheiroFeira.toFixed(2)}</strong> (Rec: R$ ${arrecadadoDinheiro.toFixed(2)} | Desp: R$ ${despDinheiro.toFixed(2)})</span>
+                            <span>Pix (Liq): <strong class="text-sky-400">R$ ${saldoPixFeira.toFixed(2)}</strong> (Rec: R$ ${arrecadadoPix.toFixed(2)} | Desp: R$ ${despPix.toFixed(2)})</span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1"><strong>Despesas detalhadas:</strong> ${despesasHtml}</div>
+                        ${inadimplentesNomes.length > 0 ? `<div class="mt-2 text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Não pagaram (${inadimplentesNomes.length}):${inadimplentesNomes.join(', ')}</div>` : '<div class="mt-2 text-xs text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Todos os presentes quitaram taxas!</div>'}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs uppercase text-gray-400 block">Saldo Líquido Geral</span>
+                        <span class="text-lg font-bold ${liquidoFeira >= 0 ? 'text-emerald-400' : 'text-red-400'}">R$ ${liquidoFeira.toFixed(2)}</span>
+                    </div>
+                `;
+                listaExtrato.appendChild(card);
+            });
+
+            document.getElementById('rel-total-arrecadado').innerText = `R$ ${brutoGeral.toFixed(2)}`;
+            document.getElementById('rel-total-liquido').innerText = `R$ ${liquidoGeral.toFixed(2)}`;
+        }
+
+        function imprimirRelatorioGeral() {
+            window.print();
+        }
+
+        // Executar na carga da página
+        window.onload = function() {
+            carregarDados();
+            atualizarSelectFeiras();
+        };
+    </script>
+</body>
+</html>
