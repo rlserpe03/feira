@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Lunar de Feiras</title>
+    <title>Feira da Lua - Controle Lunar Imersivo</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,11 +13,11 @@
                 extend: {
                     colors: {
                         lunar: {
-                            950: '#0a0a0f',
-                            900: '#12121c',
-                            800: '#1a1a2e',
-                            700: '#252542',
-                            600: '#383860',
+                            950: '#07070e',
+                            900: '#0d0d1a',
+                            800: '#15152b',
+                            700: '#212140',
+                            600: '#32325c',
                             yellow: '#facc15',
                             gold: '#eab308',
                             glow: '#fef08a'
@@ -36,29 +36,99 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0a0a0f;
+            background-color: #07070e;
             color: #f3f4f6;
+            overflow-x: hidden;
         }
+
+        /* Tela de Carregamento / Boas-vindas */
+        #welcome-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #07070e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+        }
+
+        /* Canvas de Fundo Espacial */
+        #space-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        /* Gradientes de Nebulosas Cósmicas de Fundo */
+        .nebula-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -3;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(88, 28, 135, 0.22) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(30, 58, 138, 0.25) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(234, 179, 8, 0.04) 0%, transparent 60%),
+                radial-gradient(circle at 80% 15%, rgba(190, 24, 93, 0.15) 0%, transparent 40%),
+                linear-gradient(180deg, #07070e 0%, #0d0d1a 50%, #07070e 100%);
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #12121c;
+            background: rgba(13, 13, 26, 0.8);
         }
         ::-webkit-scrollbar-thumb {
-            background: #383860;
+            background: #32325c;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #eab308;
         }
-        .moon-glow {
-            box-shadow: 0 0 25px rgba(234, 179, 8, 0.15);
+
+        /* Glassmorphism Refinado */
+        .glass-card {
+            background: rgba(15, 15, 30, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(234, 179, 8, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
+
+        .glass-header {
+            background: rgba(13, 13, 26, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.2);
+        }
+
+        .moon-glow {
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.2);
+        }
+
         .moon-border {
-            border-color: rgba(234, 179, 8, 0.2);
+            border-color: rgba(234, 179, 8, 0.22);
+        }
+
+        /* Efeito de brilho estelar animado */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .animate-twinkle {
+            animation: twinkle 4s ease-in-out infinite;
         }
 
         /* Print Specific Styles */
@@ -66,6 +136,9 @@
             body {
                 background-color: #ffffff !important;
                 color: #000000 !important;
+            }
+            #space-canvas, .nebula-bg, #welcome-screen {
+                display: none !important;
             }
             header, nav, footer, .no-print, button, select, input {
                 display: none !important;
@@ -84,11 +157,12 @@
             #tab-relatorios {
                 display: block !important;
             }
-            .bg-lunar-900, .bg-lunar-800, .bg-lunar-950 {
+            .glass-card, .bg-lunar-900, .bg-lunar-800, .bg-lunar-950 {
                 background-color: #ffffff !important;
                 color: #000000 !important;
                 border-color: #d1d5db !important;
                 box-shadow: none !important;
+                backdrop-filter: none !important;
             }
             .text-white, .text-gray-100, .text-gray-300, .text-gray-400 {
                 color: #111827 !important;
@@ -112,60 +186,90 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-lunar-950 text-gray-100 flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+<body class="min-h-screen text-gray-100 flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
 
-    <header class="bg-lunar-900 border-b moon-border sticky top-0 z-50 backdrop-blur-md bg-opacity-90 no-print">
+    <!-- TELA DE BOAS-VINDAS E CARREGAMENTO (4 SEGUNDOS) -->
+    <div id="welcome-screen">
+        <div class="nebula-bg"></div>
+        <div class="glass-card p-8 rounded-3xl max-w-md w-full mx-4 text-center moon-glow border moon-border relative z-10 flex flex-col items-center">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-lunar-800 via-lunar-700 to-yellow-500 flex items-center justify-center moon-glow border moon-border mb-6">
+                <i class="fa-solid fa-moon text-yellow-400 text-4xl animate-twinkle"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold tracking-wider text-white mb-2">
+                BEM-VINDO À <span class="text-yellow-400 font-light drop-shadow-[0_0_15px_rgba(234,179,8,0.6)]">FEIRA DA LUA</span>
+            </h2>
+            <p class="text-sm text-gray-300 mb-8">Inicializando o sistema de controle cósmico...</p>
+            
+            <!-- Barra de Porcentagem -->
+            <div class="w-full bg-lunar-900/90 rounded-full h-4 p-0.5 border moon-border mb-3 overflow-hidden shadow-inner">
+                <div id="loading-bar" class="bg-gradient-to-r from-yellow-500 to-yellow-300 h-full rounded-full transition-all duration-75 shadow-[0_0_12px_rgba(234,179,8,0.8)]" style="width: 0%;"></div>
+            </div>
+            <div class="flex justify-between w-full text-xs font-semibold text-gray-400 px-1">
+                <span>Carregando dados</span>
+                <span id="loading-percentage" class="text-yellow-400 font-bold">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fundo Cósmico Imersivo com Nebulosas e Estrelas -->
+    <div class="nebula-bg"></div>
+    <canvas id="space-canvas"></canvas>
+
+    <!-- Cabeçalho Principal -->
+    <header class="glass-header sticky top-0 z-50 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-lunar-800 via-lunar-700 to-yellow-500 flex items-center justify-center moon-glow border moon-border">
-                    <i class="fa-solid fa-moon text-yellow-400 text-2xl"></i>
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-lunar-800 via-lunar-700 to-yellow-500 flex items-center justify-center moon-glow border moon-border relative">
+                    <i class="fa-solid fa-moon text-yellow-400 text-2xl animate-twinkle"></i>
                 </div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-white flex items-center gap-2">
-                        FEIRA DA<span class="text-yellow-400 font-light">LUA</span>
+                        FEIRA DA<span class="text-yellow-400 font-light drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">LUA</span>
                     </h1>
-                    <p class="text-xs text-gray-400">Controle - Feiras</p>
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5">
+                        <span class="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span> Controle Cósmico de Feiras
+                    </p>
                 </div>
             </div>
             
             <nav class="flex space-x-1 sm:space-x-3">
-                <button onclick="switchTab('feiras')" id="btn-tab-feiras" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20 flex items-center gap-2">
+                <button onclick="switchTab('feiras')" id="btn-tab-feiras" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/30 flex items-center gap-2">
                     <i class="fa-solid fa-store"></i> <span class="hidden sm:inline">Feiras</span>
                 </button>
-                <button onclick="switchTab('feirantes')" id="btn-tab-feirantes" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2">
+                <button onclick="switchTab('feirantes')" id="btn-tab-feirantes" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800/80 flex items-center gap-2">
                     <i class="fa-solid fa-users"></i> <span class="hidden sm:inline">Feirantes</span>
                 </button>
-                <button onclick="switchTab('relatorios')" id="btn-tab-relatorios" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2">
+                <button onclick="switchTab('relatorios')" id="btn-tab-relatorios" class="px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800/80 flex items-center gap-2">
                     <i class="fa-solid fa-chart-pie"></i> <span class="hidden sm:inline">Relatórios</span>
                 </button>
             </nav>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
 
         <!-- TAB 1: FEIRAS (EVENTOS) -->
         <div id="tab-feiras" class="space-y-6">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow no-print">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-card p-6 rounded-2xl moon-glow no-print">
                 <div>
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-calendar-days text-yellow-400"></i> Gestão de Feiras e Eventos
                     </h2>
-                  <!--  <p class="text-sm text-gray-400 mt-1">Selecione uma feira existente ou crie um novo evento para controle de caixa e presenças.</p> -->
+                    <p class="text-sm text-gray-400 mt-1">Selecione uma feira existente ou crie um novo evento para controle de caixa e presenças.</p>
                 </div>
                 <div class="flex items-center gap-3 w-full md:w-auto">
-                    <select id="select-feira-ativa" onchange="selecionarFeira(this.value)" class="bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400 w-full md:w-64">
+                    <select id="select-feira-ativa" onchange="selecionarFeira(this.value)" class="bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400 w-full md:w-64">
                         <option value="">Selecione uma Feira...</option>
                     </select>
-                    <button onclick="abrirModalNovaFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-yellow-400/10">
+                    <button onclick="abrirModalNovaFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-yellow-400/20">
                         <i class="fa-solid fa-plus"></i> Nova Feira
                     </button>
                 </div>
             </div>
 
             <!-- PAINEL DA FEIRA SELECIONADA -->
-            <div id="painel-feira-vazio" class="text-center py-20 bg-lunar-900/50 rounded-2xl border border-dashed moon-border">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-lunar-800 flex items-center justify-center text-yellow-400 text-2xl moon-glow">
+            <div id="painel-feira-vazio" class="text-center py-20 glass-card rounded-2xl border border-dashed moon-border">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-lunar-800/80 flex items-center justify-center text-yellow-400 text-2xl moon-glow">
                     <i class="fa-solid fa-store-slash"></i>
                 </div>
                 <h3 class="text-lg font-medium text-white">Nenhuma Feira Selecionada</h3>
@@ -181,39 +285,39 @@
 
                 <!-- Info cards da Feira -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Data da Feira</p>
                             <h4 id="info-feira-data" class="text-lg font-bold text-white mt-1">-</h4>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-yellow-400 flex items-center justify-center no-print">
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800/80 text-yellow-400 flex items-center justify-center no-print">
                             <i class="fa-solid fa-calendar"></i>
                         </div>
                     </div>
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Taxa por Feirante</p>
                             <h4 id="info-feira-taxa" class="text-lg font-bold text-white mt-1">R$ 0,00</h4>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-yellow-400 flex items-center justify-center no-print">
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800/80 text-yellow-400 flex items-center justify-center no-print">
                             <i class="fa-solid fa-tag"></i>
                         </div>
                     </div>
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Despesas</p>
                             <h4 id="info-feira-despesa" class="text-lg font-bold text-red-400 mt-1">R$ 0,00</h4>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-red-400 flex items-center justify-center no-print">
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800/80 text-red-400 flex items-center justify-center no-print">
                             <i class="fa-solid fa-receipt"></i>
                         </div>
                     </div>
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Saldo Líquido (Caixa)</p>
                             <h4 id="info-feira-saldo" class="text-lg font-bold text-emerald-400 mt-1">R$ 0,00</h4>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-lunar-800 text-emerald-400 flex items-center justify-center no-print">
+                        <div class="w-10 h-10 rounded-xl bg-lunar-800/80 text-emerald-400 flex items-center justify-center no-print">
                             <i class="fa-solid fa-wallet"></i>
                         </div>
                     </div>
@@ -221,30 +325,30 @@
 
                 <!-- PAINEL DE SALDOS SEPARADOS (DINHEIRO E PIX) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-money-bill-wave mr-1"></i> Saldo em Dinheiro</p>
                             <h4 id="info-saldo-dinheiro" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</h4>
                             <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras menos Despesas em Dinheiro</p>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-950/40 text-emerald-400 border border-emerald-900/50 flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50 flex items-center justify-center text-xl">
                             <i class="fa-solid fa-coins"></i>
                         </div>
                     </div>
-                    <div class="bg-lunar-900 p-5 rounded-2xl border moon-border flex items-center justify-between">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-sky-400 uppercase tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> Saldo em Pix</p>
                             <h4 id="info-saldo-pix" class="text-xl font-bold text-sky-400 mt-1">R$ 0,00</h4>
                             <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras menos Despesas via Pix</p>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-sky-950/40 text-sky-400 border border-sky-900/50 flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 rounded-xl bg-sky-950/60 text-sky-400 border border-sky-900/50 flex items-center justify-center text-xl">
                             <i class="fa-solid fa-mobile-screen"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- GERENCIAMENTO DE RECEITAS EXTRAS DA FEIRA -->
-                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border no-print">
+                <div class="glass-card p-6 rounded-2xl no-print">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div>
                             <h3 class="font-bold text-white flex items-center gap-2">
@@ -256,19 +360,19 @@
                     <!-- Formulário para adicionar nova receita extra -->
                     <form onsubmit="adicionarReceitaExtra(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
                         <div class="md:col-span-5">
-                            <input type="text" id="nova-receita-desc" required placeholder="Descrição da receita (ex: Fundo de emergência, Apoio...)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <input type="text" id="nova-receita-desc" required placeholder="Descrição da receita (ex: Fundo de emergência, Apoio...)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
                         <div class="md:col-span-3">
-                            <input type="number" step="0.01" min="0" id="nova-receita-valor" required placeholder="Valor (R$)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <input type="number" step="0.01" min="0" id="nova-receita-valor" required placeholder="Valor (R$)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
                         <div class="md:col-span-2">
-                            <select id="nova-receita-pagamento" required class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <select id="nova-receita-pagamento" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                                 <option value="dinheiro">Dinheiro</option>
                                 <option value="pix">Pix</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <button type="submit" class="w-full bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-400 border border-emerald-900/50 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                            <button type="submit" class="w-full bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-400 border border-emerald-900/50 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Adicionar
                             </button>
                         </div>
@@ -284,7 +388,7 @@
                                     <th class="py-2.5 px-4 text-center w-24">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-receitas-extras-body" class="divide-y divide-lunar-800">
+                            <tbody id="tabela-receitas-extras-body" class="divide-y divide-lunar-800/50">
                                 <!-- Preenchido via JS -->
                             </tbody>
                         </table>
@@ -292,7 +396,7 @@
                 </div>
 
                 <!-- GERENCIAMENTO DE DESPESAS INDIVIDUAIS DA FEIRA -->
-                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border no-print">
+                <div class="glass-card p-6 rounded-2xl no-print">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div>
                             <h3 class="font-bold text-white flex items-center gap-2">
@@ -304,19 +408,19 @@
                     <!-- Formulário para adicionar nova despesa -->
                     <form onsubmit="adicionarDespesa(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
                         <div class="md:col-span-5">
-                            <input type="text" id="nova-despesa-desc" required placeholder="Descrição da despesa (ex: Aluguel de Tenda, Som...)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <input type="text" id="nova-despesa-desc" required placeholder="Descrição da despesa (ex: Aluguel de Tenda, Som...)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
                         <div class="md:col-span-3">
-                            <input type="number" step="0.01" min="0" id="nova-despesa-valor" required placeholder="Valor (R$)" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <input type="number" step="0.01" min="0" id="nova-despesa-valor" required placeholder="Valor (R$)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
                         <div class="md:col-span-2">
-                            <select id="nova-despesa-pagamento" required class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <select id="nova-despesa-pagamento" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                                 <option value="dinheiro">Dinheiro</option>
                                 <option value="pix">Pix</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <button type="submit" class="w-full bg-red-950/60 hover:bg-red-900/80 text-red-400 border border-red-900/50 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                            <button type="submit" class="w-full bg-red-950/70 hover:bg-red-900/90 text-red-400 border border-red-900/50 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Adicionar
                             </button>
                         </div>
@@ -332,7 +436,7 @@
                                     <th class="py-2.5 px-4 text-center w-24">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-despesas-body" class="divide-y divide-lunar-800">
+                            <tbody id="tabela-despesas-body" class="divide-y divide-lunar-800/50">
                                 <!-- Preenchido via JS -->
                             </tbody>
                         </table>
@@ -355,39 +459,39 @@
                 </div>
 
                 <!-- Ações e Resumo rápido -->
-                <div class="bg-lunar-900 p-6 rounded-2xl border moon-border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                    <div class="flex flex-wrap items-center gap-4 text-sm">
-                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                <div class="glass-card p-6 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-3 text-sm">
+                        <span class="bg-lunar-800/80 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
                             Total Cadastrados: <strong id="stat-total" class="text-white">0</strong>
                         </span>
-                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                        <span class="bg-lunar-800/80 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
                             Presentes: <strong id="stat-presentes" class="text-yellow-400">0</strong>
                         </span>
-                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                        <span class="bg-lunar-800/80 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
                             Faltas: <strong id="stat-faltas" class="text-red-400">0</strong>
                         </span>
-                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                        <span class="bg-lunar-800/80 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
                             Arrecadado Dinheiro: <strong id="stat-dinheiro" class="text-emerald-400">R$ 0,00</strong>
                         </span>
-                        <span class="bg-lunar-800 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
+                        <span class="bg-lunar-800/80 px-3 py-1.5 rounded-lg border moon-border text-gray-300">
                             Arrecadado Pix: <strong id="stat-pix" class="text-sky-400">R$ 0,00</strong>
                         </span>
                     </div>
                     <div class="flex items-center gap-3 no-print">
-                        <button onclick="imprimirRelatorioFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/10">
+                        <button onclick="imprimirRelatorioFeira()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/20">
                             <i class="fa-solid fa-print"></i> Imprimir Relatório
                         </button>
                         <button onclick="abrirModalEditarFeira()" class="bg-lunar-800 hover:bg-lunar-700 text-yellow-400 border moon-border px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-pen-to-square"></i> Editar Feira
                         </button>
-                        <button onclick="excluirFeiraAtual()" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/50 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2">
+                        <button onclick="excluirFeiraAtual()" class="bg-red-950/50 hover:bg-red-900/70 text-red-400 border border-red-900/50 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-trash"></i> Excluir Feira
                         </button>
                     </div>
                 </div>
 
                 <!-- Tabela de Feirantes na Feira -->
-                <div class="bg-lunar-900 rounded-2xl border moon-border overflow-hidden">
+                <div class="glass-card rounded-2xl overflow-hidden">
                     <div class="p-5 border-b moon-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print">
                         <h3 class="font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-yellow-400"></i> Lista de Feirantes & Pagamentos
@@ -397,7 +501,7 @@
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                     <i class="fa-solid fa-search text-xs"></i>
                                 </span>
-                                <input type="text" id="filtro-busca-feira" oninput="renderizarFeirantesFeira()" placeholder="Filtrar feirante..." class="w-full bg-lunar-800 border moon-border rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400">
+                                <input type="text" id="filtro-busca-feira" oninput="renderizarFeirantesFeira()" placeholder="Filtrar feirante..." class="w-full bg-lunar-800/90 border moon-border rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400">
                             </div>
                         </div>
                     </div>
@@ -413,7 +517,7 @@
                                     <th class="py-3 px-4 text-center no-print">Ações / Desfazer</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-feirantes-feira-body" class="divide-y divide-lunar-800 text-sm">
+                            <tbody id="tabela-feirantes-feira-body" class="divide-y divide-lunar-800/50 text-sm">
                                 <!-- Preenchido dinamicamente -->
                             </tbody>
                         </table>
@@ -432,22 +536,22 @@
 
         <!-- TAB 2: FEIRANTES (CADASTRO GERAL) -->
         <div id="tab-feirantes" class="hidden space-y-6">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-card p-6 rounded-2xl moon-glow">
                 <div>
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-users text-yellow-400"></i> Cadastro Geral de Feirantes
                     </h2>
                     <p class="text-sm text-gray-400 mt-1">Cadastre, edite ou remova os feirantes disponíveis para participar das feiras.</p>
                 </div>
-                <button onclick="abrirModalNovoFeirante()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/10">
+                <button onclick="abrirModalNovoFeirante()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/20">
                     <i class="fa-solid fa-user-plus"></i> Novo Feirante
                 </button>
             </div>
 
-            <div class="bg-lunar-900 rounded-2xl border moon-border overflow-hidden">
+            <div class="glass-card rounded-2xl overflow-hidden">
                 <div class="p-5 border-b moon-border flex justify-between items-center">
                     <h3 class="font-bold text-white">Feirantes Cadastrados (<span id="total-cadastrados-count">0</span>)</h3>
-                    <input type="text" id="filtro-busca-cadastro" oninput="renderizarCadastroFeirantes()" placeholder="Buscar por nome..." class="bg-lunar-800 border moon-border rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 w-64">
+                    <input type="text" id="filtro-busca-cadastro" oninput="renderizarCadastroFeirantes()" placeholder="Buscar por nome..." class="bg-lunar-800/90 border moon-border rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 w-64">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -459,7 +563,7 @@
                                 <th class="py-3 px-4 text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-cadastro-body" class="divide-y divide-lunar-800 text-sm">
+                        <tbody id="tabela-cadastro-body" class="divide-y divide-lunar-800/50 text-sm">
                             <!-- Preenchido via JS -->
                         </tbody>
                     </table>
@@ -469,14 +573,14 @@
 
         <!-- TAB 3: RELATÓRIOS -->
         <div id="tab-relatorios" class="hidden space-y-6">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-lunar-900 p-6 rounded-2xl border moon-border moon-glow no-print">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-card p-6 rounded-2xl moon-glow no-print">
                 <div>
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie text-yellow-400"></i> Relatório Geral de Feiras
                     </h2>
                     <p class="text-sm text-gray-400 mt-1">Histórico consolidado de todas as feiras realizadas, saldos em Pix, Dinheiro e inadimplências.</p>
                 </div>
-                <button onclick="imprimirRelatorioGeral()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/15">
+                <button onclick="imprimirRelatorioGeral()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-yellow-400/20">
                     <i class="fa-solid fa-print"></i> Imprimir Relatório Geral
                 </button>
             </div>
@@ -489,29 +593,29 @@
 
             <!-- Cards de Resumo Geral com Pix e Dinheiro -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="bg-lunar-900 p-5 rounded-2xl border moon-border">
+                <div class="glass-card p-5 rounded-2xl">
                     <p class="text-xs font-medium text-gray-400 uppercase">Total de Feiras</p>
                     <h3 id="rel-total-feiras" class="text-2xl font-bold text-white mt-1">0</h3>
                 </div>
-                <div class="bg-lunar-900 p-5 rounded-2xl border moon-border">
+                <div class="glass-card p-5 rounded-2xl">
                     <p class="text-xs font-medium text-emerald-400 uppercase"><i class="fa-solid fa-money-bill-wave mr-1"></i> Total Dinheiro (Liq)</p>
                     <h3 id="rel-total-dinheiro" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h3>
                 </div>
-                <div class="bg-lunar-900 p-5 rounded-2xl border moon-border">
+                <div class="glass-card p-5 rounded-2xl">
                     <p class="text-xs font-medium text-sky-400 uppercase"><i class="fa-solid fa-qrcode mr-1"></i> Total Pix (Liq)</p>
                     <h3 id="rel-total-pix" class="text-2xl font-bold text-sky-400 mt-1">R$ 0,00</h3>
                 </div>
-                <div class="bg-lunar-900 p-5 rounded-2xl border moon-border">
+                <div class="glass-card p-5 rounded-2xl">
                     <p class="text-xs font-medium text-gray-400 uppercase">Arrecadação Bruta</p>
                     <h3 id="rel-total-arrecadado" class="text-2xl font-bold text-gray-100 mt-1">R$ 0,00</h3>
                 </div>
-                <div class="bg-lunar-900 p-5 rounded-2xl border moon-border">
+                <div class="glass-card p-5 rounded-2xl">
                     <p class="text-xs font-medium text-yellow-400 uppercase">Saldo Líquido Geral</p>
                     <h3 id="rel-total-liquido" class="text-2xl font-bold text-yellow-400 mt-1">R$ 0,00</h3>
                 </div>
             </div>
 
-            <div class="bg-lunar-900 rounded-2xl border moon-border p-6">
+            <div class="glass-card rounded-2xl p-6">
                 <h3 class="font-bold text-white mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-file-lines text-yellow-400"></i> Extrato Detalhado de Feiras
                 </h3>
@@ -524,73 +628,221 @@
     </main>
 
     <!-- MODAL: NOVA / EDITAR FEIRA -->
-    <div id="modal-feira" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
-        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+    <div id="modal-feira" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-card rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             <h3 id="modal-feira-titulo" class="text-xl font-bold text-white mb-4">Nova Feira</h3>
             <form id="form-feira" onsubmit="salvarFeira(event)" class="space-y-4">
                 <input type="hidden" id="feira-id-edit">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Data da Feira</label>
-                    <input type="date" id="feira-data" required class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="date" id="feira-data" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Valor da Taxa por Feirante (R$)</label>
-                    <input type="number" step="0.01" min="0" id="feira-taxa" required placeholder="Ex: 50.00" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="number" step="0.01" min="0" id="feira-taxa" required placeholder="Ex: 50.00" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="fecharModalFeira()" class="bg-lunar-800 hover:bg-lunar-700 text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">Cancelar</button>
-                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/10">Salvar Feira</button>
+                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/20">Salvar Feira</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: NOVO / EDITAR FEIRANTE -->
-    <div id="modal-feirante" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
-        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+    <div id="modal-feirante" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-card rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             <h3 id="modal-feirante-titulo" class="text-xl font-bold text-white mb-4">Novo Feirante</h3>
             <form id="form-feirante" onsubmit="salvarFeirante(event)" class="space-y-4">
                 <input type="hidden" id="feirante-id-edit">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Nome Completo</label>
-                    <input type="text" id="feirante-nome" required placeholder="Ex: João da Silva" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="feirante-nome" required placeholder="Ex: João da Silva" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Telefone / Contato</label>
-                    <input type="text" id="feirante-telefone" placeholder="Ex: (11) 99999-9999" class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="feirante-telefone" placeholder="Ex: (11) 99999-9999" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Segmento / Produto</label>
-                    <input type="text" id="feirante-segmento" placeholder="Ex: Artesanato, Comida, Roupas..." class="w-full bg-lunar-800 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="feirante-segmento" placeholder="Ex: Artesanato, Comida, Roupas..." class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="fecharModalFeirante()" class="bg-lunar-800 hover:bg-lunar-700 text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">Cancelar</button>
-                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/10">Salvar Feirante</button>
+                    <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-yellow-400/20">Salvar Feirante</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL DE MENSAGENS / AVISOS -->
-    <div id="modal-aviso" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
-        <div class="bg-lunar-900 border moon-border rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
-            <div id="modal-aviso-icon" class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 text-2xl">
+    <div id="modal-aviso" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-card rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div id="modal-aviso-icon" class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 text-2xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <h4 id="modal-aviso-titulo" class="text-lg font-bold text-white mb-2">Aviso</h4>
             <p id="modal-aviso-texto" class="text-sm text-gray-300 mb-6">Mensagem aqui...</p>
-            <button onclick="fecharAviso()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2.5 rounded-xl transition-all">Entendido</button>
+            <button onclick="fecharAviso()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-yellow-400/20">Entendido</button>
         </div>
     </div>
 
-    <footer class="bg-lunar-900 border-t moon-border py-6 text-center text-xs text-gray-400 mt-12 no-print">
-        <p>LunarFair &bull; Controle Financeiro &copy; Robson Serpe - 2026</p>
+    <footer class="glass-header py-6 text-center text-xs text-gray-400 mt-12 no-print z-10">
+        <p>LunarFair &bull; Controle Financeiro Imersivo &copy; Robson Serpe - 2026</p>
     </footer>
 
     <script>
+        // --- MOTOR DE FUNDO ESPACIAL (CENA CÓSMICA COM PARALLAX, ESTRELAS E CONSTELAÇÕES) ---
+        const canvas = document.getElementById('space-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let stars = [];
+        let constellations = [];
+        let stardust = [];
+        let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initSpace();
+        }
+
+        function initSpace() {
+            stars = [];
+            constellations = [];
+            stardust = [];
+
+            // Quantidade de estrelas com base na resolução
+            const numStars = Math.floor((width * height) / 2500);
+            const colors = ['#ffffff', '#e2e8f0', '#93c5fd', '#fef08a', '#fbcfe8', '#fde68a'];
+
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.8 + 0.3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: Math.random() * 0.8 + 0.2,
+                    twinkleSpeed: Math.random() * 0.02 + 0.005,
+                    twinkleDir: Math.random() > 0.5 ? 1 : -1,
+                    layer: Math.random() * 3 + 1 // Para efeito parallax
+                });
+            }
+
+            // Poeira estelar flutuante
+            for (let i = 0; i < 45; i++) {
+                stardust.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 2.5 + 1,
+                    alpha: Math.random() * 0.4 + 0.1,
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: (Math.random() - 0.5) * 0.2
+                });
+            }
+
+            // Gerar constelações sutis conectando pontos luminosos
+            const numConstellations = 6;
+            for (let c = 0; c < numConstellations; c++) {
+                let cx = Math.random() * (width - 300) + 150;
+                let cy = Math.random() * (height - 300) + 150;
+                let points = [];
+                let numPoints = Math.floor(Math.random() * 4) + 4; // 4 a 7 estrelas por constelação
+
+                for (let p = 0; p < numPoints; p++) {
+                    points.push({
+                        x: cx + (Math.random() - 0.5) * 250,
+                        y: cy + (Math.random() - 0.5) * 250
+                    });
+                }
+                constellations.push(points);
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.targetX = (e.clientX - width / 2) / 50;
+            mouse.targetY = (e.clientY - height / 2) / 50;
+        });
+
+        function animateSpace() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Suavizar movimento do mouse (parallax)
+            mouse.x += (mouse.targetX - mouse.x) * 0.05;
+            mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+            // Desenhar Constelações
+            ctx.lineWidth = 0.6;
+            ctx.strokeStyle = 'rgba(234, 179, 8, 0.08)';
+            constellations.forEach(constellation => {
+                ctx.beginPath();
+                for (let i = 0; i < constellation.length; i++) {
+                    let pt = constellation[i];
+                    let px = pt.x + mouse.x * 0.5;
+                    let py = pt.y + mouse.y * 0.5;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+
+                    // Desenhar nó da constelação
+                    ctx.fillStyle = 'rgba(254, 240, 138, 0.5)';
+                    ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
+                }
+                ctx.stroke();
+            });
+
+            // Desenhar Poeira Estelar
+            stardust.forEach(p => {
+                p.x += p.vx + mouse.x * 0.1;
+                p.y += p.vy + mouse.y * 0.1;
+
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(234, 179, 8, ${p.alpha})`;
+                ctx.fill();
+            });
+
+            // Desenhar Estrelas com Brilho Cintilante (Twinkling)
+            stars.forEach(star => {
+                star.alpha += star.twinkleSpeed * star.twinkleDir;
+                if (star.alpha > 0.95 || star.alpha < 0.2) {
+                    star.twinkleDir *= -1;
+                }
+
+                let px = star.x + mouse.x * star.layer;
+                let py = star.y + mouse.y * star.layer;
+
+                // Loop nas bordas
+                if (px < 0) px = width;
+                if (px > width) px = 0;
+                if (py < 0) py = height;
+                if (py > height) py = 0;
+
+                ctx.beginPath();
+                ctx.arc(px, py, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = star.alpha;
+                ctx.shadowBlur = star.radius > 1.5 ? 8 : 2;
+                ctx.shadowColor = star.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+            });
+
+            requestAnimationFrame(animateSpace);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+
         // --- CONFIGURAÇÃO DO SUPABASE ---
-        const SUPABASE_URL = 'https://dacflbghapzaprfodcdp.supabase.co'; // Ex: https://xyzcompany.supabase.co
-        const SUPABASE_ANON_KEY = 'sb_publishable_IFPJIjBifmO9Bf6652e17w_mibZ9qXj'; // Chave anon/public
+        const SUPABASE_URL = 'https://dacflbghapzaprfodcdp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_IFPJIjBifmO9Bf6652e17w_mibZ9qXj';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -664,12 +916,12 @@
         function switchTab(tabName) {
             ['feiras', 'feirantes', 'relatorios'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`btn-tab-${t}`).className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800 flex items-center gap-2";
+                document.getElementById(`btn-tab-${t}`).className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 text-gray-300 hover:text-yellow-400 hover:bg-lunar-800/80 flex items-center gap-2";
             });
 
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-tab-${tabName}`);
-            activeBtn.className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20 flex items-center gap-2";
+            activeBtn.className = "px-3 sm:px-5 py-2.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 bg-yellow-400 text-black shadow-lg shadow-yellow-500/30 flex items-center gap-2";
 
             if (tabName === 'feiras') {
                 atualizarSelectFeiras();
@@ -686,10 +938,10 @@
             document.getElementById('modal-aviso-texto').innerText = texto;
             const iconContainer = document.getElementById('modal-aviso-icon');
             if (tipo === 'erro') {
-                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center text-red-400 text-2xl";
+                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-2xl";
                 iconContainer.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
             } else {
-                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 text-2xl";
+                iconContainer.className = "w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 text-2xl";
                 iconContainer.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
             }
             document.getElementById('modal-aviso').classList.remove('hidden');
@@ -717,21 +969,21 @@
 
             filtrados.forEach(f => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-lunar-800/50 transition-colors";
+                tr.className = "hover:bg-lunar-800/40 transition-colors";
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-medium text-white flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-lunar-800 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs">
+                        <div class="w-8 h-8 rounded-full bg-lunar-800/90 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs">
                             ${f.nome.charAt(0).toUpperCase()}
                         </div>
                         ${f.nome}
                     </td>
                     <td class="py-3 px-4 text-gray-300">${f.telefone || '-'}</td>
-                    <td class="py-3 px-4 text-gray-300"><span class="bg-lunar-800 px-2.5 py-1 rounded-lg text-xs border moon-border">${f.segmento || 'Geral'}</span></td>
+                    <td class="py-3 px-4 text-gray-300"><span class="bg-lunar-800/80 px-2.5 py-1 rounded-lg text-xs border moon-border">${f.segmento || 'Geral'}</span></td>
                     <td class="py-3 px-4 text-right space-x-2">
-                        <button onclick="abrirModalEditarFeirante('${f.id}')" class="text-yellow-400 hover:text-yellow-300 p-1.5 rounded-lg hover:bg-lunar-800 transition-colors" title="Editar">
+                        <button onclick="abrirModalEditarFeirante('${f.id}')" class="text-yellow-400 hover:text-yellow-300 p-1.5 rounded-lg hover:bg-lunar-800/80 transition-colors" title="Editar">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button onclick="excluirFeirante('${f.id}')" class="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-lunar-800 transition-colors" title="Excluir">
+                        <button onclick="excluirFeirante('${f.id}')" class="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-lunar-800/80 transition-colors" title="Excluir">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
@@ -1081,10 +1333,10 @@
                     tr.className = "hover:bg-lunar-800/40 transition-colors";
                     tr.innerHTML = `
                         <td class="py-2.5 px-4 text-white">${r.descricao}</td>
-                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${r.pagamento === 'pix' ? 'bg-sky-950/60 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
+                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${r.pagamento === 'pix' ? 'bg-sky-950/70 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/70 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
                         <td class="py-2.5 px-4 text-right text-emerald-400 font-medium">+ R$ ${r.valor.toFixed(2)}</td>
                         <td class="py-2.5 px-4 text-center">
-                            <button onclick="excluirReceitaExtra('${r.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800" title="Remover Receita Extra">
+                            <button onclick="excluirReceitaExtra('${r.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800/80" title="Remover Receita Extra">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
                         </td>
@@ -1113,10 +1365,10 @@
                     tr.className = "hover:bg-lunar-800/40 transition-colors";
                     tr.innerHTML = `
                         <td class="py-2.5 px-4 text-white">${d.descricao}</td>
-                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${d.pagamento === 'pix' ? 'bg-sky-950/60 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
+                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${d.pagamento === 'pix' ? 'bg-sky-950/70 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/70 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
                         <td class="py-2.5 px-4 text-right text-red-400 font-medium">R$ ${d.valor.toFixed(2)}</td>
                         <td class="py-2.5 px-4 text-center">
-                            <button onclick="excluirDespesa('${d.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800" title="Remover Despesa">
+                            <button onclick="excluirDespesa('${d.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800/80" title="Remover Despesa">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
                         </td>
@@ -1285,7 +1537,7 @@
 
             lista.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = item.presente ? "hover:bg-lunar-800/50 transition-colors" : "opacity-50 bg-lunar-950/40 hover:bg-lunar-800/30 transition-colors";
+                tr.className = item.presente ? "hover:bg-lunar-800/40 transition-colors" : "opacity-50 bg-lunar-950/40 hover:bg-lunar-800/20 transition-colors";
 
                 let badgePagamento = '';
                 if (!item.presente) {
@@ -1293,15 +1545,15 @@
                 } else {
                     const btnDinheiroClass = item.pagamento === 'dinheiro' 
                         ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20 ring-2 ring-white/50' 
-                        : 'bg-lunar-800 text-gray-300 hover:bg-emerald-950 hover:text-emerald-400';
+                        : 'bg-lunar-800/90 text-gray-300 hover:bg-emerald-950 hover:text-emerald-400';
                     
                     const btnPixClass = item.pagamento === 'pix' 
                         ? 'bg-sky-400 text-black font-bold shadow-md shadow-sky-400/20 ring-2 ring-white/50' 
-                        : 'bg-lunar-800 text-gray-300 hover:bg-sky-950 hover:text-sky-400';
+                        : 'bg-lunar-800/90 text-gray-300 hover:bg-sky-950 hover:text-sky-400';
 
                     const btnPendenteClass = item.pagamento === 'pendente' 
                         ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20 ring-2 ring-white/50' 
-                        : 'bg-lunar-800 text-gray-300 hover:bg-amber-950 hover:text-amber-400';
+                        : 'bg-lunar-800/90 text-gray-300 hover:bg-amber-950 hover:text-amber-400';
 
                     badgePagamento = `
                         <div class="flex items-center justify-center gap-1.5 no-print">
@@ -1316,7 +1568,7 @@
                 tr.innerHTML = `
                     <td class="py-3 px-4">
                         <div class="font-medium text-white flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full bg-lunar-800 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs no-print">
+                            <div class="w-7 h-7 rounded-full bg-lunar-800/90 border moon-border flex items-center justify-center text-yellow-400 font-bold text-xs no-print">
                                 ${item.nome.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -1326,7 +1578,7 @@
                         </div>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <button onclick="alterarPresenca('${item.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border moon-border no-print ${item.presente ? 'bg-yellow-400 text-black shadow-md shadow-yellow-400/10' : 'bg-lunar-800 text-gray-400 hover:text-white'}">
+                        <button onclick="alterarPresenca('${item.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border moon-border no-print ${item.presente ? 'bg-yellow-400 text-black shadow-md shadow-yellow-400/20' : 'bg-lunar-800/90 text-gray-400 hover:text-white'}">
                             ${item.presente ? '<i class="fa-solid fa-check mr-1"></i> Presente' : '<i class="fa-solid fa-xmark mr-1"></i> Falta'}
                         </button>
                         <span class="print-only">${item.presente ? 'Presente' : 'Ausente'}</span>
@@ -1338,7 +1590,7 @@
                         R$ ${item.presente ? feira.taxa.toFixed(2) : '0,00'}
                     </td>
                     <td class="py-3 px-4 text-center no-print">
-                        ${item.presente && item.pagamento === 'pendente' ? '<span class="px-2 py-0.5 bg-red-950/60 text-red-400 border border-red-900/50 rounded text-xs font-medium animate-pulse">Inadimplente</span>' : '<span class="text-xs text-gray-500">-</span>'}
+                        ${item.presente && item.pagamento === 'pendente' ? '<span class="px-2 py-0.5 bg-red-950/70 text-red-400 border border-red-900/50 rounded text-xs font-medium animate-pulse">Inadimplente</span>' : '<span class="text-xs text-gray-500">-</span>'}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1426,7 +1678,7 @@
                 const [ano, mes, dia] = feira.data.split('-');
 
                 const card = document.createElement('div');
-                card.className = "bg-lunar-800/60 border moon-border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
+                card.className = "bg-lunar-800/40 border moon-border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
                 
                 let receitasExtrasHtml = feira.receitasExtras && feira.receitasExtras.length > 0 
                     ? feira.receitasExtras.map(r => `${r.descricao} (${r.pagamento === 'pix' ? 'Pix' : 'Dinheiro'}): R$ ${r.valor.toFixed(2)}`).join(' | ') 
@@ -1470,10 +1722,39 @@
             window.print();
         }
 
-        // Executar na carga da página
-        window.onload = async function() {
-            await carregarDados();
-            atualizarSelectFeiras();
+        // Executar na carga da página com simulação de 4 segundos na tela de boas-vindas
+        window.onload = function() {
+            resizeCanvas();
+            animateSpace();
+
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingPercentage = document.getElementById('loading-percentage');
+            const welcomeScreen = document.getElementById('welcome-screen');
+
+            let progress = 0;
+            const duration = 4000; // 4 segundos
+            const intervalTime = 40; 
+            const increment = (intervalTime / duration) * 100;
+
+            const timer = setInterval(async () => {
+                progress += increment;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    
+                    // Carrega os dados em segundo plano/conclusão
+                    await carregarDados();
+                    atualizarSelectFeiras();
+
+                    // Esconde a tela de boas-vindas com transição suave
+                    welcomeScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        welcomeScreen.style.display = 'none';
+                    }, 800);
+                }
+                loadingBar.style.width = Math.floor(progress) + '%';
+                loadingPercentage.innerText = Math.floor(progress) + '%';
+            }, intervalTime);
         };
     </script>
 </body>
