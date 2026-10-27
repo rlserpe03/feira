@@ -419,17 +419,17 @@
                 </div>
 
                 <!-- GERENCIAMENTO DE RECEITAS EXTRAS DA FEIRA -->
-                <div class="glass-card p-6 rounded-2xl no-print admin-only">
+                <div class="glass-card p-6 rounded-2xl no-print">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div>
                             <h3 class="font-bold text-white flex items-center gap-2">
                                 <i class="fa-solid fa-circle-plus text-emerald-400"></i> Lançamento de Receitas Extras / Eventuais
                             </h3>
-                            <p class="text-xs text-gray-400">Adicione receitas extras arrecadadas na feira (ex: fundo de reserva, doações, vendas extras).</p>
+                            <p class="text-xs text-gray-400">Receitas extras arrecadadas na feira (ex: fundo de reserva, doações, vendas extras).</p>
                         </div>
                     </div>
-                    <!-- Formulário para adicionar nova receita extra -->
-                    <form onsubmit="adicionarReceitaExtra(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
+                    <!-- Formulário para adicionar nova receita extra (Visível apenas para Admin) -->
+                    <form onsubmit="adicionarReceitaExtra(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 admin-only">
                         <div class="md:col-span-5">
                             <input type="text" id="nova-receita-desc" required placeholder="Descrição da receita (ex: Fundo de emergência, Apoio...)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
@@ -456,7 +456,7 @@
                                     <th class="py-2.5 px-4">Descrição da Receita Extra</th>
                                     <th class="py-2.5 px-4 text-center">Forma Pagto</th>
                                     <th class="py-2.5 px-4 text-right">Valor</th>
-                                    <th class="py-2.5 px-4 text-center w-24">Ações</th>
+                                    <th class="py-2.5 px-4 text-center w-24 admin-only">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-receitas-extras-body" class="divide-y divide-lunar-800/50">
@@ -467,17 +467,17 @@
                 </div>
 
                 <!-- GERENCIAMENTO DE DESPESAS INDIVIDUAIS DA FEIRA -->
-                <div class="glass-card p-6 rounded-2xl no-print admin-only">
+                <div class="glass-card p-6 rounded-2xl no-print">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div>
                             <h3 class="font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-file-invoice-dollar text-red-400"></i> Lançamento de Despesas Detalhadas
+                                <i class="fa-solid fa-file-invoice-dollar text-red-400"></i> Despesas Detalhadas da Feira
                             </h3>
-                            <p class="text-xs text-gray-400">Adicione cada despesa individualmente e a forma de pagamento utilizada.</p>
+                            <p class="text-xs text-gray-400">Detalhamento das despesas individuais e a forma de pagamento utilizada.</p>
                         </div>
                     </div>
-                    <!-- Formulário para adicionar nova despesa -->
-                    <form onsubmit="adicionarDespesa(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
+                    <!-- Formulário para adicionar nova despesa (Visível apenas para Admin) -->
+                    <form onsubmit="adicionarDespesa(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 admin-only">
                         <div class="md:col-span-5">
                             <input type="text" id="nova-despesa-desc" required placeholder="Descrição da despesa (ex: Aluguel de Tenda, Som...)" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
                         </div>
@@ -504,7 +504,7 @@
                                     <th class="py-2.5 px-4">Descrição da Despesa</th>
                                     <th class="py-2.5 px-4 text-center">Forma Pagto</th>
                                     <th class="py-2.5 px-4 text-right">Valor</th>
-                                    <th class="py-2.5 px-4 text-center w-24">Ações</th>
+                                    <th class="py-2.5 px-4 text-center w-24 admin-only">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-despesas-body" class="divide-y divide-lunar-800/50">
@@ -971,7 +971,7 @@
                 }
 
                 if (!profileData) {
-                 //   mostrarAviso("Acesso Negado", "Usuário ou senha incorretos.", "erro");
+                    mostrarAviso("Acesso Negado", "Usuário ou senha incorretos.", "erro");
                     return;
                 }
 
@@ -1009,7 +1009,7 @@
             });
 
             if (!ehAdmin) {
-                switchTab('relatorios');
+                switchTab('feiras');
             } else {
                 switchTab('feiras');
             }
@@ -1500,6 +1500,8 @@
             const feira = db.feiras.find(f => f.id === feiraAtivaId);
             if (!feira) return;
 
+            const ehAdmin = usuarioLogado && usuarioLogado.role === 'admin';
+
             const [ano, mes, dia] = feira.data.split('-');
             document.getElementById('info-feira-data').innerText = `${dia}/${mes}/${ano}`;
             document.getElementById('print-feira-data-cabecalho').innerText = `Data do Evento: ${dia}/${mes}/${ano} | Taxa Base: R$ ${feira.taxa.toFixed(2)}`;
@@ -1516,7 +1518,7 @@
             const divPrintReceitasExtras = document.getElementById('print-lista-receitas-extras');
 
             if (!feira.receitasExtras || feira.receitasExtras.length === 0) {
-                tbodyReceitasExtras.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">Nenhuma receita extra lançada nesta feira.</td></tr>`;
+                tbodyReceitasExtras.innerHTML = `<tr><td colspan="${ehAdmin ? 4 : 3}" class="text-center py-4 text-gray-400">Nenhuma receita extra lançada nesta feira.</td></tr>`;
                 divPrintReceitasExtras.innerHTML = `<p>Nenhuma receita extra lançada.</p>`;
             } else {
                 let htmlPrintRex = '<ul class="list-disc pl-5 space-y-1">';
@@ -1530,7 +1532,7 @@
                         <td class="py-2.5 px-4 text-white">${r.descricao}</td>
                         <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${r.pagamento === 'pix' ? 'bg-sky-950/70 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/70 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
                         <td class="py-2.5 px-4 text-right text-emerald-400 font-medium">+ R$ ${r.valor.toFixed(2)}</td>
-                        <td class="py-2.5 px-4 text-center">
+                        <td class="py-2.5 px-4 text-center admin-only" style="display: ${ehAdmin ? '' : 'none'}">
                             <button onclick="excluirReceitaExtra('${r.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800/80" title="Remover Receita Extra">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
@@ -1548,7 +1550,7 @@
             const divPrintDespesas = document.getElementById('print-lista-despesas');
 
             if (!feira.despesas || feira.despesas.length === 0) {
-                tbodyDespesas.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">Nenhuma despesa lançada nesta feira.</td></tr>`;
+                tbodyDespesas.innerHTML = `<tr><td colspan="${ehAdmin ? 4 : 3}" class="text-center py-4 text-gray-400">Nenhuma despesa lançada nesta feira.</td></tr>`;
                 divPrintDespesas.innerHTML = `<p>Nenhuma despesa lançada.</p>`;
             } else {
                 let htmlPrint = '<ul class="list-disc pl-5 space-y-1">';
@@ -1562,7 +1564,7 @@
                         <td class="py-2.5 px-4 text-white">${d.descricao}</td>
                         <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${d.pagamento === 'pix' ? 'bg-sky-950/70 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/70 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
                         <td class="py-2.5 px-4 text-right text-red-400 font-medium">R$ ${d.valor.toFixed(2)}</td>
-                        <td class="py-2.5 px-4 text-center">
+                        <td class="py-2.5 px-4 text-center admin-only" style="display: ${ehAdmin ? '' : 'none'}">
                             <button onclick="excluirDespesa('${d.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800/80" title="Remover Despesa">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
@@ -1785,7 +1787,7 @@
             }
 
             if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenhum feirante encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenum feirante encontrado.</td></tr>`;
                 return;
             }
 
