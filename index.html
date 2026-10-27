@@ -249,7 +249,6 @@
         <div class="nebula-bg"></div>
         <div class="glass-card p-8 sm:p-10 rounded-3xl max-w-md w-full mx-4 text-center moon-glow border moon-border relative z-10 flex flex-col items-center space-y-6">
             
-            <!-- Logo Moon Orb com Efeito Cratera -->
             <div class="lunar-orb flex items-center justify-center">
                 <i class="fa-solid fa-moon text-lunar-950 text-3xl animate-twinkle opacity-60"></i>
             </div>
@@ -261,7 +260,6 @@
                 <p class="text-xs sm:text-sm text-gray-300 mt-1">Sistema de Controle Financeiro Cósmico</p>
             </div>
 
-            <!-- Barra de Progresso com % -->
             <div class="w-full space-y-2">
                 <div class="flex justify-between items-center text-xs font-medium px-1">
                     <span id="splash-status-text" class="text-gray-300">Conectando ao cosmos...</span>
@@ -400,7 +398,7 @@
                         <div>
                             <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-money-bill-wave mr-1"></i> Saldo em Dinheiro</p>
                             <h4 id="info-saldo-dinheiro" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</h4>
-                            <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras menos Despesas em Dinheiro</p>
+                            <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras/Pós-Feira menos Despesas em Dinheiro</p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50 flex items-center justify-center text-xl">
                             <i class="fa-solid fa-coins"></i>
@@ -410,11 +408,70 @@
                         <div>
                             <p class="text-xs font-medium text-sky-400 uppercase tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> Saldo em Pix</p>
                             <h4 id="info-saldo-pix" class="text-xl font-bold text-sky-400 mt-1">R$ 0,00</h4>
-                            <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras menos Despesas via Pix</p>
+                            <p class="text-xs text-gray-400 mt-1">Taxas + Receitas Extras/Pós-Feira menos Despesas via Pix</p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-sky-950/60 text-sky-400 border border-sky-900/50 flex items-center justify-center text-xl">
                             <i class="fa-solid fa-mobile-screen"></i>
                         </div>
+                    </div>
+                </div>
+
+                <!-- LANÇAMENTO DE PAGAMENTOS PÓS-FEIRA (UTILIZANDO RECEITAS EXTRAS COM RÓTULO ESPECÍFICO) -->
+                <div class="glass-card p-6 rounded-2xl no-print">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <div>
+                            <h3 class="font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-purple-400"></i> Pagamentos Pós-Feira (Quitações em Outra Data)
+                            </h3>
+                            <p class="text-xs text-gray-400">Lançamento de quitações de dívidas ou taxas recebidas fora do dia da feira para bater com o caderno de contabilidade.</p>
+                        </div>
+                    </div>
+
+                    <!-- Form de Inserção de Pagamento Pós-Feira (Admin Only) -->
+                    <form onsubmit="adicionarPagamentoPosFeira(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 admin-only">
+                        <div class="md:col-span-3">
+                            <select id="pos-feirante-id" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                                <option value="">Selecione o Feirante...</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] text-gray-400 uppercase mb-0.5">Data Efetiva do PG</label>
+                            <input type="date" id="pos-data-pagamento" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] text-gray-400 uppercase mb-0.5">Valor (R$)</label>
+                            <input type="number" step="0.01" min="0" id="pos-valor" required placeholder="0.00" class="w-full bg-lunar-800/90 border moon-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] text-gray-400 uppercase mb-0.5">Forma PG</label>
+                            <select id="pos-pagamento-tipo" required class="w-full bg-lunar-800/90 border moon-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                                <option value="pix">Pix</option>
+                                <option value="dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 flex items-end">
+                            <button type="submit" class="w-full bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 border border-purple-900/50 font-semibold py-2 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-save"></i> Registrar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Tabela de Pagamentos Pós-Feira Lançados -->
+                    <div class="overflow-x-auto rounded-xl border moon-border">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-lunar-800/80 text-gray-400 text-xs uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-4">Feirante (Quitação Pós-Feira)</th>
+                                    <th class="py-2.5 px-4 text-center">Data Real PG</th>
+                                    <th class="py-2.5 px-4 text-center">Forma Pagto</th>
+                                    <th class="py-2.5 px-4 text-right">Valor Quitado</th>
+                                    <th class="py-2.5 px-4 text-center w-24 admin-only">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-pos-feira-body" class="divide-y divide-lunar-800/50">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -956,7 +1013,6 @@
             const senhaInput = document.getElementById('login-senha').value.trim();
 
             try {
-                // Consulta diretamente no Supabase ignorando maiúsculas/minúsculas no nome e validando a senha exatamente
                 const { data: profileData, error: profError } = await supabaseClient
                     .from('profiles')
                     .select('*')
@@ -975,14 +1031,11 @@
                     return;
                 }
 
-                // Define o usuário logado com as informações retornadas do Supabase
                 usuarioLogado = profileData;
 
-                // Esconde a modal de login e ativa o botão de logout
                 document.getElementById('modal-login').classList.add('hidden');
                 document.getElementById('btn-logout').classList.remove('hidden');
 
-                // Aplica permissões no painel
                 aplicarPermissoesPerfil();
 
             } catch (err) {
@@ -1008,14 +1061,9 @@
                 el.style.display = ehAdmin ? '' : 'none';
             });
 
-            if (!ehAdmin) {
-                switchTab('feiras');
-            } else {
-                switchTab('feiras');
-            }
+            switchTab('feiras');
         }
 
-        // Atualizador da barra de progresso do Splash Screen
         function atualizarSplashProgress(percent, statusText) {
             const bar = document.getElementById('splash-progress-bar');
             const percentLabel = document.getElementById('splash-percentage');
@@ -1036,12 +1084,11 @@
             }
         }
 
-        // Carregar dados do Supabase
+        // Carregar dados do Supabase de forma segura
         async function carregarDados() {
             try {
                 atualizarSplashProgress(15, "Conectando ao banco de dados...");
 
-                // 1. Buscar feirantes
                 atualizarSplashProgress(35, "Carregando feirantes cadastrados...");
                 const { data: feirantesData, error: errFeirantes } = await supabaseClient
                     .from('feirantes')
@@ -1050,8 +1097,7 @@
                 if (errFeirantes) throw errFeirantes;
                 db.feirantes = feirantesData || [];
 
-                // 2. Buscar feiras com despesas, receitas e registros
-                atualizarSplashProgress(65, "Carregando feiras e movimentações financeiras...");
+                atualizarSplashProgress(65, "Carregando feiras, despesas e registros...");
                 const { data: feirasData, error: errFeiras } = await supabaseClient
                     .from('feiras')
                     .select(`
@@ -1066,9 +1112,17 @@
                 
                 if (errFeiras) throw errFeiras;
 
+                // Tenta carregar pagamentos pós-feira de forma segura caso a tabela exista
+                let posFeiraData = [];
+                try {
+                    const { data: posData } = await supabaseClient.from('pagamentos_pos_feira').select('*');
+                    posFeiraData = posData || [];
+                } catch (e) {
+                    console.log("Tabela pagamentos_pos_feira opcional não encontrada, usando armazenamento compatível.");
+                }
+
                 atualizarSplashProgress(85, "Processando relatórios e saldos...");
 
-                // Mapear dados para a aplicação
                 db.feiras = (feirasData || []).map(f => {
                     let registrosObj = {};
                     if (f.registros_feirantes) {
@@ -1081,12 +1135,21 @@
                         });
                     }
 
+                    const posFeirasDestaFeira = posFeiraData.filter(p => p.feira_id === f.id);
+
                     return {
                         id: f.id,
                         data: f.data,
                         taxa: Number(f.taxa),
                         despesas: (f.despesas || []).map(d => ({ id: d.id, descricao: d.descricao, valor: Number(d.valor), pagamento: d.pagamento })),
                         receitasExtras: (f.receitas_extras || []).map(r => ({ id: r.id, descricao: r.descricao, valor: Number(r.valor), pagamento: r.pagamento })),
+                        pagamentosPosFeira: posFeirasDestaFeira.map(p => ({
+                            id: p.id,
+                            feirante_id: p.feirante_id,
+                            data_pagamento: p.data_pagamento,
+                            valor: Number(p.valor),
+                            pagamento: p.pagamento
+                        })),
                         registros: registrosObj
                     };
                 });
@@ -1095,7 +1158,7 @@
 
             } catch (e) {
                 console.error("Erro ao carregar dados do Supabase:", e);
-                mostrarAviso("Erro", "Não foi possível carregar os dados do servidor.", "erro");
+                mostrarAviso("Erro", "Não foi possível carregar os dados do servidor. Verifique sua conexão.", "erro");
             }
 
             if (db.feiras.length > 0 && !feiraAtivaId) {
@@ -1321,6 +1384,71 @@
             carregarDetalhesFeiraAtiva();
         }
 
+        // --- GERENCIAMENTO DE PAGAMENTOS PÓS-FEIRA ---
+        async function adicionarPagamentoPosFeira(e) {
+            e.preventDefault();
+            const feira = db.feiras.find(f => f.id === feiraAtivaId);
+            if (!feira) return;
+
+            const feiranteId = document.getElementById('pos-feirante-id').value;
+            const dataPagamento = document.getElementById('pos-data-pagamento').value;
+            const valor = parseFloat(document.getElementById('pos-valor').value) || 0;
+            const pagamento = document.getElementById('pos-pagamento-tipo').value;
+
+            if (!feiranteId || !dataPagamento || valor <= 0) {
+                mostrarAviso("Aviso", "Preencha todos os campos corretamente.", "info");
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('pagamentos_pos_feira')
+                    .insert([{ feira_id: feiraAtivaId, feirante_id: feiranteId, data_pagamento: dataPagamento, valor, pagamento }]);
+
+                if (error) throw error;
+            } catch (err) {
+                // Fallback automático caso a tabela não exista: insere como receita extra detalhada
+                const feiranteObj = db.feirantes.find(f => f.id === feiranteId);
+                const nomeF = feiranteObj ? feiranteObj.nome : 'Feirante';
+                await supabaseClient
+                    .from('receitas_extras')
+                    .insert([{ feira_id: feiraAtivaId, descricao: `Quitação Pós-Feira: ${nomeF} (${dataPagamento})`, valor, pagamento }]);
+            }
+
+            let regAtual = feira.registros[feiranteId] || { presente: false, valorTaxa: feira.taxa };
+            await supabaseClient
+                .from('registros_feirantes')
+                .upsert({
+                    feira_id: feiraAtivaId,
+                    feirante_id: feiranteId,
+                    presente: regAtual.presente,
+                    pagamento: 'pago_outro_dia',
+                    valor_taxa: regAtual.valorTaxa
+                }, { onConflict: 'feira_id,feirante_id' });
+
+            document.getElementById('pos-feirante-id').value = '';
+            document.getElementById('pos-data-pagamento').value = new Date().toISOString().split('T')[0];
+            document.getElementById('pos-valor').value = '';
+
+            await carregarDados();
+            carregarDetalhesFeiraAtiva();
+        }
+
+        async function excluirPagamentoPosFeira(posId) {
+            const { error } = await supabaseClient
+                .from('pagamentos_pos_feira')
+                .delete()
+                .eq('id', posId);
+
+            if (error) {
+                mostrarAviso("Erro", "Erro ao remover lançamento pós-feira.", "erro");
+                return;
+            }
+
+            await carregarDados();
+            carregarDetalhesFeiraAtiva();
+        }
+
         // --- GERENCIAMENTO DE DESPESAS INDIVIDUAIS ---
         async function adicionarDespesa(e) {
             e.preventDefault();
@@ -1507,11 +1635,49 @@
             document.getElementById('print-feira-data-cabecalho').innerText = `Data do Evento: ${dia}/${mes}/${ano} | Taxa Base: R$ ${feira.taxa.toFixed(2)}`;
             document.getElementById('info-feira-taxa').innerText = `R$ ${feira.taxa.toFixed(2)}`;
 
+            const selectPosFeirante = document.getElementById('pos-feirante-id');
+            selectPosFeirante.innerHTML = '<option value="">Selecione o Feirante...</option>';
+            db.feirantes.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.innerText = f.nome;
+                selectPosFeirante.appendChild(opt);
+            });
+            document.getElementById('pos-data-pagamento').value = new Date().toISOString().split('T')[0];
+
             let totalDespesas = 0;
             if (feira.despesas && feira.despesas.length > 0) {
                 totalDespesas = feira.despesas.reduce((acc, d) => acc + d.valor, 0);
             }
             document.getElementById('info-feira-despesa').innerText = `R$ ${totalDespesas.toFixed(2)}`;
+
+            const tbodyPos = document.getElementById('tabela-pos-feira-body');
+            tbodyPos.innerHTML = '';
+            if (!feira.pagamentosPosFeira || feira.pagamentosPosFeira.length === 0) {
+                tbodyPos.innerHTML = `<tr><td colspan="${ehAdmin ? 5 : 4}" class="text-center py-4 text-gray-400">Nenhum pagamento pós-feira registrado nesta feira.</td></tr>`;
+            } else {
+                feira.pagamentosPosFeira.forEach(p => {
+                    const feiranteObj = db.feirantes.find(f => f.id === p.feirante_id);
+                    const nomeFeirante = feiranteObj ? feiranteObj.nome : 'Desconhecido';
+                    const [pAno, pMes, pDia] = p.data_pagamento.split('-');
+                    const pagtoLabel = p.pagamento === 'pix' ? 'Pix' : 'Dinheiro';
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-lunar-800/40 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-4 text-white font-medium">${nomeFeirante}</td>
+                        <td class="py-2.5 px-4 text-center text-purple-300 font-medium">${pDia}/${pMes}/${pAno}</td>
+                        <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${p.pagamento === 'pix' ? 'bg-sky-950/70 text-sky-400 border border-sky-900/50' : 'bg-emerald-950/70 text-emerald-400 border border-emerald-900/50'}">${pagtoLabel}</span></td>
+                        <td class="py-2.5 px-4 text-right text-purple-400 font-bold">+ R$ ${p.valor.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-center admin-only" style="display: ${ehAdmin ? '' : 'none'}">
+                            <button onclick="excluirPagamentoPosFeira('${p.id}')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-lunar-800/80" title="Remover Pagamento Pós-Feira">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyPos.appendChild(tr);
+                });
+            }
 
             const tbodyReceitasExtras = document.getElementById('tabela-receitas-extras-body');
             tbodyReceitasExtras.innerHTML = '';
@@ -1741,8 +1907,17 @@
                 });
             }
 
-            let totalDinheiroComExtras = totalDinheiro + extraDinheiro;
-            let totalPixComExtras = totalPix + extraPix;
+            let posDinheiro = 0;
+            let posPix = 0;
+            if (feira.pagamentosPosFeira && feira.pagamentosPosFeira.length > 0) {
+                feira.pagamentosPosFeira.forEach(p => {
+                    if (p.pagamento === 'pix') posPix += p.valor;
+                    else posDinheiro += p.valor;
+                });
+            }
+
+            let totalDinheiroComExtras = totalDinheiro + extraDinheiro + posDinheiro;
+            let totalPixComExtras = totalPix + extraPix + posPix;
 
             let despesasDinheiro = 0;
             let despesasPix = 0;
@@ -1787,7 +1962,7 @@
             }
 
             if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenum feirante encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenhum feirante encontrado.</td></tr>`;
                 return;
             }
 
@@ -1839,7 +2014,7 @@
                 } else if (item.pagamento === 'desistiu') {
                     tagSituacao = '<span class="px-2 py-0.5 bg-gray-800/80 text-gray-300 border border-gray-700 rounded text-xs font-medium"><i class="fa-solid fa-user-slash mr-1"></i>Desistiu (Isento)</span>';
                 } else if (item.pagamento === 'pago_outro_dia') {
-                    tagSituacao = '<span class="px-2 py-0.5 bg-purple-950/70 text-purple-300 border border-purple-900/50 rounded text-xs font-medium">Pago Outra Data</span>';
+                    tagSituacao = '<span class="px-2 py-0.5 bg-purple-950/70 text-purple-300 border border-purple-900/50 rounded text-xs font-medium">Pago Pós-Feira</span>';
                 } else if (item.presente && item.pagamento === 'pendente') {
                     tagSituacao = '<span class="px-2 py-0.5 bg-red-950/70 text-red-400 border border-red-900/50 rounded text-xs font-medium animate-pulse">Inadimplente</span>';
                 } else if (item.presente && (item.pagamento === 'dinheiro' || item.pagamento === 'pix')) {
@@ -1988,8 +2163,17 @@
                     });
                 }
 
-                arrecadadoDinheiro += extraDinheiro;
-                arrecadadoPix += extraPix;
+                let posDinheiro = 0;
+                let posPix = 0;
+                if (feira.pagamentosPosFeira && feira.pagamentosPosFeira.length > 0) {
+                    feira.pagamentosPosFeira.forEach(p => {
+                        if (p.pagamento === 'pix') posPix += p.valor;
+                        else posDinheiro += p.valor;
+                    });
+                }
+
+                arrecadadoDinheiro += extraDinheiro + posDinheiro;
+                arrecadadoPix += extraPix + posPix;
 
                 let despDinheiro = 0;
                 let despPix = 0;
@@ -2018,6 +2202,14 @@
                     ? feira.receitasExtras.map(r => `${r.descricao} (${r.pagamento === 'pix' ? 'Pix' : 'Dinheiro'}): R$ ${r.valor.toFixed(2)}`).join(' | ') 
                     : 'Nenhuma';
 
+                let posFeiraHtml = feira.pagamentosPosFeira && feira.pagamentosPosFeira.length > 0
+                    ? feira.pagamentosPosFeira.map(p => {
+                        const feiranteObj = db.feirantes.find(f => f.id === p.feirante_id);
+                        const [pAno, pMes, pDia] = p.data_pagamento.split('-');
+                        return `${feiranteObj ? feiranteObj.nome : 'Feirante'} em ${pDia}/${pMes}/${pAno} (${p.pagamento === 'pix' ? 'Pix' : 'Dinheiro'}): R$ ${p.valor.toFixed(2)}`;
+                    }).join(' | ')
+                    : 'Nenhum';
+
                 let despesasHtml = feira.despesas && feira.despesas.length > 0 
                     ? feira.despesas.map(d => `${d.descricao} (${d.pagamento === 'pix' ? 'Pix' : 'Dinheiro'}): R$ ${d.valor.toFixed(2)}`).join(' | ') 
                     : 'Nenhuma despesa';
@@ -2032,9 +2224,10 @@
                             <span>Dinheiro (Liq): <strong class="text-emerald-400">R$ ${saldoDinheiroFeira.toFixed(2)}</strong></span>
                             <span>Pix (Liq): <strong class="text-sky-400">R$ ${saldoPixFeira.toFixed(2)}</strong></span>
                         </div>
+                        <div class="text-xs text-purple-300 mt-1"><strong>Quitações Pós-Feira:</strong> ${posFeiraHtml}</div>
                         <div class="text-xs text-gray-400 mt-1"><strong>Receitas Extras:</strong> ${receitasExtrasHtml}</div>
                         <div class="text-xs text-gray-400 mt-1"><strong>Despesas detalhadas:</strong> ${despesasHtml}</div>
-                        ${inadimplentesNomes.length > 0 ? `<div class="mt-2 text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Não pagaram (${inadimplentesNomes.length}): ${inadimplentesNomes.join(', ')}</div>` : '<div class="mt-2 text-xs text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Todos os presentes quitaram taxas!</div>'}
+                        ${inadimplentesNomes.length > 0 ? `<div class="mt-2 text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Pendentes (${inadimplentesNomes.length}): ${inadimplentesNomes.join(', ')}</div>` : '<div class="mt-2 text-xs text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Todos os presentes quitaram taxas!</div>'}
                     </div>
                     <div class="text-right">
                         <span class="text-xs uppercase text-gray-400 block">Saldo Líquido da Feira</span>
