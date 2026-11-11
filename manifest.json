@@ -1,6 +1,6 @@
 {
-  "name": "Vendas de Domingo",
-  "short_name": "Vendas VIP",
+  "name": "Lançamentos Feira da Lua",
+  "short_name": "Feira da Lua",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#070a0f",
