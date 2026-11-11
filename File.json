@@ -1,0 +1,15 @@
+{
+  "name": "Vendas de Domingo",
+  "short_name": "Vendas VIP",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070a0f",
+  "theme_color": "#0b0f17",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2983/2983780.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
